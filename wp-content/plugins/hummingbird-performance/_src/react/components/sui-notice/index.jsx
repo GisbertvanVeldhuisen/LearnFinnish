@@ -10,7 +10,7 @@ import classNames from 'classnames';
  * @param {string} message  Notice message.
  * @param {Array}  classes  Array of extra classes to use.
  * @param {Object} content  CTA content.
- * @return {*} Button component.
+ * @return {*} Notice component.
  * @class
  */
 export default function Notice( { message, classes, content } ) {
@@ -18,9 +18,17 @@ export default function Notice( { message, classes, content } ) {
 
 	return (
 		<div className={ combinedClasses }>
-			<p>{ message }</p>
+			<div className="sui-notice-content">
+				<div className="sui-notice-message">
+					<span
+						className="sui-notice-icon sui-icon-info sui-md"
+						aria-hidden="true"
+					></span>
+					<p>{ message }</p>
 
-			{ content && <div className="sui-notice-buttons">{ content }</div> }
+					{ content && <p>{ content }</p> }
+				</div>
+			</div>
 		</div>
 	);
 }

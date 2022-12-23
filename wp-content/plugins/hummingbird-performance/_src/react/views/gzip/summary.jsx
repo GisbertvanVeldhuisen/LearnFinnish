@@ -119,6 +119,7 @@ class GzipSummary extends React.Component {
 
 		// Get the tooltips and icons.
 		let text = sprintf(
+			/* translators: %d - number of gzip types */
 			__(
 				'%d of your compression types are inactive. Configure compression for all files types below.'
 			),
@@ -129,17 +130,50 @@ class GzipSummary extends React.Component {
 			return 'privacy' === item;
 		} );
 
-		if ( 1 === privacyFail.length ) {
+		if ( 0 < privacyFail.length ) {
 			classes = 'sui-notice-info';
 			text = sprintf(
-				__(
-					"GZip compression is currently active for %d/3 types. We've detected you have Privacy Mode active which prevents us from accurately detecting whether HTML compression is active or not. You can re-check this when you've disabled Privacy Mode."
-				),
-				failedGzip.length
+				/* translators: %d - number of active types */
+				__( 'GZip compression is currently active for %d/3 types.' ),
+				3 - failedGzip.length
 			);
+
+			if (
+				'undefined' !== typeof this.props.status.HTML &&
+				'privacy' === this.props.status.HTML
+			) {
+				text +=
+					' ' +
+					__(
+						'We’ve detected that you have Privacy Mode active which prevents us from accurately detecting whether HTML compression is active or not. That is to say, an HTTP 401 Unauthorized Client status was detected and your site requires valid HTTP authentication credentials. You can re-check this once you have tended to the HTTP 401 error.'
+					);
+			} else {
+				text +=
+					' ' +
+					__(
+						'We’ve detected an HTTP error that prevents us from accurately detecting whether HTML compression is active or not. You can re-check this once you have tended to the HTTP error.'
+					);
+			}
 		} else if ( 0 === failedGzip.length ) {
 			classes = 'sui-notice-success';
 			text = __( 'Gzip compression is currently active. Good job!' );
+
+			// Gzip enabled on host site.
+			if ( false === this.props.data.htaccess_written ) {
+				text = __(
+					'GZip compression is already running smoothly on your site. Your hosting has automatically pre-configured GZip compression for you and no further actions are required.'
+				);
+			}
+
+			// Replace notice on WPMU hosting.
+			if (
+				false === this.props.data.is_white_labeled &&
+				true === this.props.data.is_wpmu_hosting
+			) {
+				text = __(
+					'GZip compression is already running smoothly on your site. Since your site is hosted with WPMU DEV, GZip compression has been automatically configured and no further actions are required.'
+				);
+			}
 		}
 
 		// Build the items array.
@@ -147,7 +181,7 @@ class GzipSummary extends React.Component {
 			let label = __( 'Inactive' );
 			let tag = 'warning';
 
-			if ( item[ 1 ] ) {
+			if ( true === item[ 1 ] ) {
 				label = __( 'Active' );
 				tag = 'success';
 			}
@@ -172,12 +206,13 @@ class GzipSummary extends React.Component {
 			);
 
 			let tooltipText = sprintf(
+				/* translators: %1$s - status label, %2$s - type */
 				__( 'Gzip compression is %1$s for %2$s' ),
 				label.toLowerCase(),
 				item[ 0 ]
 			);
 
-			if ( 'privacy' === item[ 0 ] ) {
+			if ( 'privacy' === item[ 1 ] ) {
 				tooltipText = __(
 					'While Privacy Mode is active, we can’t accurately detect if HTML compression is active and working. Re-check this once you’ve disabled Privacy Mode.'
 				);

@@ -94,7 +94,7 @@ class Hub {
 			foreach ( $status as $status_name => $status_value ) {
 				$result['gzip']['status'][ strtolower( $status_name ) ] = $status_value;
 			}
-			$result['gzip']['server'] = $module::get_server_type();
+			$result['gzip']['server'] = $module::get_server_type( false );
 		}
 
 		/**
@@ -184,7 +184,7 @@ class Hub {
 		$options = $module->get_options();
 
 		$result['db-cleanup']['status']    = $options['db_cleanups'];
-		$result['db-cleanup']['frequency'] = $options['db_frequency'];
+		$result['db-cleanup']['frequency'] = isset( $options['db_frequency'] ) ? $options['db_frequency'] : 7;
 
 		/**
 		 * Advanced tools.
@@ -279,6 +279,7 @@ class Hub {
 			);
 		}
 
+		define( 'WPHB_IS_NETWORK_ADMIN', true );
 		call_user_func( array( $module, 'enable' ) );
 		wp_send_json_success();
 	}
@@ -311,6 +312,7 @@ class Hub {
 			);
 		}
 
+		define( 'WPHB_IS_NETWORK_ADMIN', true );
 		call_user_func( array( $module, 'disable' ) );
 		wp_send_json_success();
 	}
@@ -358,13 +360,13 @@ class Hub {
 
 		if ( 'performance' === $module || 'reports' === $module ) {
 			$options['reports']['enabled']   = true;
-			$options['reports']['frequency'] = intval( $params->frequency );
+			$options['reports']['frequency'] = (int) $params->frequency;
 			$options['reports']['day']       = sanitize_text_field( $params->day );
 			$options['reports']['time']      = implode( ':', $email_time );
 			$options['reports']['last_sent'] = '';
 		} elseif ( 'notifications' === $module ) {
 			$options[ $module ]['enabled']   = true;
-			$options[ $module ]['threshold'] = isset( $params->threshold ) ? intval( $params->threshold ) : 0;
+			$options[ $module ]['threshold'] = isset( $params->threshold ) ? (int) $params->threshold : 0;
 		}
 
 		$reports->update_options( $options );
@@ -606,7 +608,7 @@ class Hub {
 	 * @return void|WP_Error
 	 */
 	public function action_purge_all_cache( $params, $action ) {
-		WP_Hummingbird::flush_cache( false, false, false );
+		WP_Hummingbird::flush_cache( false, false );
 		wp_send_json_success();
 	}
 

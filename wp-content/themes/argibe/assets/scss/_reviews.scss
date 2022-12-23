@@ -1,0 +1,64 @@
+html {
+  .section-reviews {
+    .entry {
+      -webkit-box-shadow: 0px 0px 25px 0px rgba(0, 0, 0, 0.14);
+      box-shadow: 0px 0px 25px 0px rgba(0, 0, 0, 0.14);
+      border-radius: 25px;
+      @include flex-wrap(wrap);
+      @include flexbox;
+    }
+
+    .column.full {
+      &:nth-last-child(1) {
+        @include media(large-tablet) {
+          overflow-y: visible;
+          overflow-x: auto;
+        }
+
+        .grid-container {
+          margin: 0 -17.5px;
+          @include media(large-tablet) {
+            min-width: 1160px;
+          }
+        }
+      }
+
+      .entry-header {
+        padding: 60px 40px;
+        position: relative;
+        @include media(large-tablet) {
+          padding: 30px 40px;
+        }
+
+        &:before, &:after {
+          content: '';
+          display: block;
+          width: 20px;
+          height: 20px;
+          position: absolute;
+          background-repeat: no-repeat;
+        }
+
+        &:before {
+          left: 10px;
+          background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' aria-hidden='true' focusable='false' data-prefix='far' data-icon='quote-left' class='svg-inline--fa fa-quote-left fa-w-18' role='img' viewBox='0 0 576 512'%3E%3Cpath fill='currentColor' d='M504 224h-56v-8c0-22.1 17.9-40 40-40h8c26.5 0 48-21.5 48-48V80c0-26.5-21.5-48-48-48h-8c-101.5 0-184 82.5-184 184v192c0 39.7 32.3 72 72 72h128c39.7 0 72-32.3 72-72V296c0-39.7-32.3-72-72-72zm24 184c0 13.2-10.8 24-24 24H376c-13.2 0-24-10.8-24-24V216c0-75 61-136 136-136h8v48h-8c-48.5 0-88 39.5-88 88v56h104c13.2 0 24 10.8 24 24v112zM200 224h-56v-8c0-22.1 17.9-40 40-40h8c26.5 0 48-21.5 48-48V80c0-26.5-21.5-48-48-48h-8C82.5 32 0 114.5 0 216v192c0 39.7 32.3 72 72 72h128c39.7 0 72-32.3 72-72V296c0-39.7-32.3-72-72-72zm24 184c0 13.2-10.8 24-24 24H72c-13.2 0-24-10.8-24-24V216c0-75 61-136 136-136h8v48h-8c-48.5 0-88 39.5-88 88v56h104c13.2 0 24 10.8 24 24v112z'/%3E%3C/svg%3E");
+        }
+
+        &:after {
+          right: 10px;
+          background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' aria-hidden='true' focusable='false' data-prefix='far' data-icon='quote-right' class='svg-inline--fa fa-quote-right fa-w-18' role='img' viewBox='0 0 576 512'%3E%3Cpath fill='currentColor' d='M200 32H72C32.3 32 0 64.3 0 104v112c0 39.7 32.3 72 72 72h56v8c0 22.1-17.9 40-40 40h-8c-26.5 0-48 21.5-48 48v48c0 26.5 21.5 48 48 48h8c101.5 0 184-82.5 184-184V104c0-39.7-32.3-72-72-72zm24 264c0 75-61 136-136 136h-8v-48h8c48.5 0 88-39.5 88-88v-56H72c-13.2 0-24-10.8-24-24V104c0-13.2 10.8-24 24-24h128c13.2 0 24 10.8 24 24v192zM504 32H376c-39.7 0-72 32.3-72 72v112c0 39.7 32.3 72 72 72h56v8c0 22.1-17.9 40-40 40h-8c-26.5 0-48 21.5-48 48v48c0 26.5 21.5 48 48 48h8c101.5 0 184-82.5 184-184V104c0-39.7-32.3-72-72-72zm24 264c0 75-61 136-136 136h-8v-48h8c48.5 0 88-39.5 88-88v-56H376c-13.2 0-24-10.8-24-24V104c0-13.2 10.8-24 24-24h128c13.2 0 24 10.8 24 24v192z'/%3E%3C/svg%3E");
+        }
+      }
+
+      .entry-content {
+        display: block;
+        margin: auto 0 0 0;
+        padding: 0 40px 40px;
+
+        h3 {
+          font-size: 18px;
+        }
+      }
+    }
+  }
+}

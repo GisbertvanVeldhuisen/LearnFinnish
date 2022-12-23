@@ -42,8 +42,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	</div>
 	<div class="sui-box-settings-col-2">
 		<label for="lazy_load" class="sui-toggle">
-			<input type="checkbox" name="lazy_load" id="lazy_load" aria-labelledby="lazy-load-label" <?php checked( $is_enabled ); ?> />
-			<input aria-controls="lazy_load-method" />
+			<input type="checkbox" name="lazy_load" id="lazy_load" aria-controls="lazy_load-method" aria-labelledby="lazy-load-label" <?php checked( $is_enabled ); ?> />
 			<span class="sui-toggle-slider" aria-hidden="true"></span>
 			<span id="lazy-load-label" class="sui-toggle-label"><?php esc_html_e( 'Enable lazy loading comments', 'wphb' ); ?></span>
 		</label>
@@ -91,7 +90,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 														<span class="sui-label-note">px</span>
 													</label>
 													<input id="button_height" class="sui-form-control" aria-labelledby="button_height_label" name="button[dimensions][height]"
-														value="<?php echo $button['dimensions']['height'] ? intval( $button['dimensions']['height'] ) : ''; ?>" placeholder="30">
+														value="<?php echo $button['dimensions']['height'] ? (int) $button['dimensions']['height'] : ''; ?>" placeholder="30">
 												</div>
 											</div>
 											<div class="sui-col-md-5">
@@ -100,7 +99,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 														<span class="sui-label-note">px</span>
 													</label>
 													<input id="button_width" class="sui-form-control" aria-labelledby="button_width_label" name="button[dimensions][width]"
-														value="<?php echo $button['dimensions']['width'] ? intval( $button['dimensions']['width'] ) : ''; ?>" placeholder="130">
+														value="<?php echo $button['dimensions']['width'] ? (int) $button['dimensions']['width'] : ''; ?>" placeholder="130">
 												</div>
 											</div>
 										</div>
@@ -109,7 +108,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 												<div class="sui-form-field">
 													<label for="button_radius" id="button_radius_label" class="sui-label"><?php esc_html_e( 'Border radius', 'wphb' ); ?></label>
 													<input id="button_radius" class="sui-form-control" aria-labelledby="button_radius_label" name="button[dimensions][radius]"
-														value="<?php echo $button['dimensions']['radius'] ? intval( $button['dimensions']['radius'] ) : ''; ?>" placeholder="4">
+														value="<?php echo $button['dimensions']['radius'] ? (int) $button['dimensions']['radius'] : ''; ?>" placeholder="4">
 												</div>
 											</div>
 										</div>
@@ -128,7 +127,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 														</span>
 														<input type="text" class="sui-input-md" value="<?php echo esc_attr( $button['color']['background'] ); ?>" readOnly="readonly">
 														<button type="button">
-															<i class="sui-icon-close" aria-hidden="true"></i>
+															<span class="sui-icon-close" aria-hidden="true"></span>
 														</button>
 													</div>
 													<button class="sui-button"><?php esc_html_e( 'Select', 'wphb' ); ?></button>
@@ -150,7 +149,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 														</span>
 														<input type="text" class="sui-input-md" value="<?php echo esc_attr( $button['color']['border'] ); ?>" readOnly="readonly">
 														<button type="button">
-															<i class="sui-icon-close" aria-hidden="true"></i>
+															<span class="sui-icon-close" aria-hidden="true"></span>
 														</button>
 													</div>
 													<button class="sui-button"><?php esc_html_e( 'Select', 'wphb' ); ?></button>
@@ -172,7 +171,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 														</span>
 														<input type="text" value="<?php echo esc_attr( $button['color']['hover'] ); ?>" readOnly="readonly" />
 														<button type="button">
-															<i class="sui-icon-close" aria-hidden="true"></i>
+															<span class="sui-icon-close" aria-hidden="true"></span>
 														</button>
 													</div>
 													<button class="sui-button"><?php esc_html_e( 'Select', 'wphb' ); ?></button>
@@ -192,15 +191,15 @@ if ( ! defined( 'ABSPATH' ) ) {
 													<div class="sui-side-tabs">
 														<div class="sui-tabs-menu" id="align-options">
 															<label for="align-left" class="sui-tab-item<?php echo checked( 'left', $button['alignment']['align'] ) ? ' active' : ''; ?>">
-																<i class="icon-align sui-icon-align-x-left" aria-hidden="true"></i>
+																<span class="icon-align sui-icon-align-x-left" aria-hidden="true"></span>
 																<input type="radio" name="button[alignment][align]" value="left" id="align-left" <?php checked( 'left', $button['alignment']['align'], true ); ?> name="button[alignment][align]">
 															</label>
 															<label for="align-center" class="sui-tab-item<?php echo checked( 'center', $button['alignment']['align'] ) ? ' active' : ''; ?>">
-																<i class="icon-align sui-icon-align-x-center" aria-hidden="true"></i>
+																<span class="icon-align sui-icon-align-x-center" aria-hidden="true"></span>
 																<input type="radio" name="button[alignment][align]" value="center" id="align-center" <?php checked( 'center', $button['alignment']['align'], true ); ?> name="button[alignment][align]">
 															</label>
 															<label for="align-right" class="sui-tab-item<?php echo checked( 'right', $button['alignment']['align'] ) ? ' active' : ''; ?>">
-																<i class="icon-align sui-icon-align-x-right" aria-hidden="true"></i>
+																<span class="icon-align sui-icon-align-x-right" aria-hidden="true"></span>
 																<input type="radio" name="button[alignment][align]" value="right" id="align-right" <?php checked( 'right', $button['alignment']['align'], true ); ?> name="button[alignment][align]">
 															</label>
 														</div>
@@ -225,7 +224,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 															<span class="sui-label-note">px</span>
 														</label>
 														<input id="button_margin_l" class="sui-form-control" aria-labelledby="button_margin_l_label" name="button[alignment][left]"
-															value="<?php echo $button['alignment']['left'] ? intval( $button['alignment']['left'] ) : ''; ?>" placeholder="0">
+															value="<?php echo $button['alignment']['left'] ? (int) $button['alignment']['left'] : ''; ?>" placeholder="0">
 													</div>
 												</div>
 												<div class="sui-col-md-5">
@@ -234,7 +233,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 															<span class="sui-label-note">px</span>
 														</label>
 														<input id="button_margin_r" class="sui-form-control" aria-labelledby="button_margin_r_label" name="button[alignment][right]"
-															value="<?php echo $button['alignment']['right'] ? intval( $button['alignment']['right'] ) : ''; ?>" placeholder="0">
+															value="<?php echo $button['alignment']['right'] ? (int) $button['alignment']['right'] : ''; ?>" placeholder="0">
 													</div>
 												</div>
 											</div>
@@ -246,7 +245,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 															<span class="sui-label-note">px</span>
 														</label>
 														<input id="button_margin_t" class="sui-form-control" aria-labelledby="button_margin_t_label" name="button[alignment][top]"
-															value="<?php echo $button['alignment']['top'] ? intval( $button['alignment']['top'] ) : ''; ?>" placeholder="150">
+															value="<?php echo $button['alignment']['top'] ? (int) $button['alignment']['top'] : ''; ?>" placeholder="150">
 													</div>
 												</div>
 												<div class="sui-col-md-5">
@@ -255,7 +254,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 															<span class="sui-label-note">px</span>
 														</label>
 														<input id="button_margin_b" class="sui-form-control" aria-labelledby="button_margin_b_label" name="button[alignment][bottom]"
-															value="<?php echo $button['alignment']['bottom'] ? intval( $button['alignment']['bottom'] ) : ''; ?>" placeholder="0">
+															value="<?php echo $button['alignment']['bottom'] ? (int) $button['alignment']['bottom'] : ''; ?>" placeholder="0">
 													</div>
 												</div>
 											</div>
@@ -285,7 +284,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 				?>
 				</span>
 				<div class="sui-form-field">
-					<input class="sui-form-control sui-input-sm" disabled value="<?php echo intval( get_option( 'comments_per_page' ) ); ?>" aria-labelledby="comments_per_page_label" aria-describedby="comments_per_page_desc">
+					<input class="sui-form-control sui-input-sm" disabled value="<?php echo (int) get_option( 'comments_per_page' ); ?>" aria-labelledby="comments_per_page_label" aria-describedby="comments_per_page_desc">
 				</div>
 			</div>
 			<div id="lazy_load-threshold" class="sui-margin-top" aria-label="<?php esc_html_e( 'Set comment threshold to lazy load comments.', 'wphb' ); ?>">
@@ -303,7 +302,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 		<?php if ( ! is_multisite() ) : ?>
 			<div class="sui-upsell-row<?php echo $is_enabled ? '' : ' sui-hidden'; ?>" id="sui-upsell-gravtar-caching">
 				<?php
-					$gravtar_caching_url = add_query_arg(
+					$gravatar_caching_url = add_query_arg(
 						array(
 							'view' => 'gravatar',
 						),
@@ -313,7 +312,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 				<span class="sui-description">
 					<?php
 					/* translators: %1$s - anchor link, %2$s - closing tag */
-					printf( esc_html__( 'Make sure you have activated %1$sGravatar Caching%2$s. It will store local copies of avatars used in comments and in your theme.', 'wphb' ), '<a href="' . esc_url( $gravtar_caching_url ) . '">', '</a>' );
+					printf( esc_html__( 'Make sure you have activated %1$sGravatar Caching%2$s. It will store local copies of avatars used in comments and in your theme.', 'wphb' ), '<a href="' . esc_url( $gravatar_caching_url ) . '">', '</a>' );
 					?>
 				</span>
 			</div>
@@ -322,19 +321,17 @@ if ( ! defined( 'ABSPATH' ) ) {
 </div>
 
 <?php if ( ! $is_smush_installed || ! $is_smush_active || ! $smush_lazy_load ) : ?>
-	<?php 
-	$smush_plugin_name 				= Utils::is_member() ? 'Smush Pro' : 'Smush'; 
-	$smush_installed_plugin_name 	= ( $is_smush_pro ) ? 'Smush Pro' : 'Smush'; 
-	$can_install_plugin 			= ( ! is_multisite() || is_network_admin() );
-	$show_smush_box 				= false;
-	$message 						= '';
+	<?php
+	$smush_plugin_name           = Utils::is_member() ? 'Smush Pro' : 'Smush';
+	$smush_installed_plugin_name = ( $is_smush_pro ) ? 'Smush Pro' : 'Smush';
+	$can_install_plugin          = ! is_multisite() || is_network_admin();
+	$show_smush_box              = false;
+	$message                     = '';
 	ob_start();
 	?>
 	<!-- Smush not installed -->
-	<?php 
-	if ( $can_install_plugin && ! $is_smush_installed ) : 
-		$show_smush_box = true; 
-		?>
+	<?php if ( $can_install_plugin && ! $is_smush_installed ) : ?>
+		<?php $show_smush_box = true; ?>
 		<a style="display: block; color: #17A8E3; margin-top: 10px;" href="<?php echo esc_url( Utils::get_link( 'smush' ) ); ?>" class="upsell-action-link" id="smush-install">
 			<?php
 			/* translators: %1$s - plugin name */
@@ -342,10 +339,10 @@ if ( ! defined( 'ABSPATH' ) ) {
 			?>
 		</a>
 	<!-- Smush is not active -->
-	<?php 
-	elseif ( $can_install_plugin && (  $is_smush_installed && ! $is_smush_active ) ) : 
+	<?php elseif ( $can_install_plugin && ( $is_smush_installed && ! $is_smush_active ) ) : ?>
+		<?php
 		$show_smush_box = true;
-		$activate_url 	= ( $is_smush_pro ) ? $smush_activate_pro_url : $smush_activate_url;
+		$activate_url   = ( $is_smush_pro ) ? $smush_activate_pro_url : $smush_activate_url;
 		?>
 		<a style="display: block; color: #17A8E3; margin-top: 10px;" href="<?php echo esc_url( $activate_url ); ?>" class="upsell-action-link" id="smush-activate">
 			<?php
@@ -353,19 +350,14 @@ if ( ! defined( 'ABSPATH' ) ) {
 			printf( esc_html__( 'Activate %s', 'wphb' ), esc_attr( $smush_installed_plugin_name ) );
 			?>
 		</a>
-	<?php 
-	elseif ( $is_smush_installed && $is_smush_active && $is_smush_lazy_load_configurable && ! $smush_lazy_load ) : 
-		$show_smush_box = true; 
-		?>
+	<?php elseif ( $is_smush_installed && $is_smush_active && $is_smush_lazy_load_configurable && ! $smush_lazy_load ) : ?>
+		<?php $show_smush_box = true; ?>
 		<a style="display: block; color: #17A8E3; margin-top: 10px;" href="<?php echo esc_url( $activate_smush_lazy_load_url ); ?>" class="upsell-action-link" id="smush-activate-lazy-load">
 			<?php printf( esc_html__( 'Activate Lazy Load', 'wphb' ), esc_attr( $smush_plugin_name ) ); ?>
 		</a>
-	<?php 
-	endif;
-	$message = ob_get_clean();
-
-	if ( $show_smush_box ) : 
-	?>
+	<?php endif; ?>
+	<?php $message = ob_get_clean(); ?>
+	<?php if ( $show_smush_box && ! apply_filters( 'wpmudev_branding_hide_branding', false ) ) : ?>
 	<div class="sui-box-settings-row sui-upsell-row">
 		<img class="sui-image sui-upsell-image" style="width: auto !important; height: 108px !important; margin-bottom: -30px" src="<?php echo esc_url( WPHB_DIR_URL . 'admin/assets/image/smush-share-widget.png' ); ?>"
 			srcset="<?php echo esc_url( WPHB_DIR_URL . 'admin/assets/image/smush-share-widget.png' ); ?> 1x, <?php echo esc_url( WPHB_DIR_URL . 'admin/assets/image/smush-share-widget@2x.png' ); ?> 2x" alt="">
@@ -381,7 +373,5 @@ if ( ! defined( 'ABSPATH' ) ) {
 			</p>
 		</div>
 	</div>
-<?php 
-	endif;
-endif; 
-?>
+	<?php endif; ?>
+<?php endif; ?>

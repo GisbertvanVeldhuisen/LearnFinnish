@@ -32,11 +32,12 @@ if ( ! defined( 'ABSPATH' ) ) {
 </p>
 
 <?php if ( ! $field_data ) : ?>
-	<div class="sui-notice">
-		<p>
-			<?php esc_html_e( 'The Chrome User Experience Report does not have sufficient real-world speed data for this page. Note: This report can take months to populate and is aimed at well established websites.', 'wphb' ); ?>
-		</p>
-	</div>
+	<?php
+	$this->admin_notices->show_inline(
+		esc_html__( 'The Chrome User Experience Report does not have sufficient real-world speed data for this page. Note: This report can take months to populate and is aimed at well established websites.', 'wphb' ),
+		'grey'
+	);
+	?>
 <?php else : ?>
 
 <div class="sui-row">
@@ -47,14 +48,14 @@ if ( ! defined( 'ABSPATH' ) ) {
 				<?php
 				switch ( $field_data->FIRST_CONTENTFUL_PAINT_MS->category ) {
 					case 'FAST':
-						echo '<i class="sui-icon-check-tick sui-success sui-md" aria-hidden="true"></i>';
+						echo '<span class="sui-icon-check-tick sui-success sui-md" aria-hidden="true"></span>';
 						break;
 					case 'AVERAGE':
-						echo '<i class="sui-icon-warning-alert sui-warning sui-md" aria-hidden="true"></i>';
+						echo '<span class="sui-icon-warning-alert sui-warning sui-md" aria-hidden="true"></span>';
 						break;
 					case 'SLOW':
 					default:
-						echo '<i class="sui-icon-warning-alert sui-error sui-md" aria-hidden="true"></i>';
+						echo '<span class="sui-icon-warning-alert sui-error sui-md" aria-hidden="true"></span>';
 						break;
 				}
 				?>
@@ -117,14 +118,14 @@ if ( ! defined( 'ABSPATH' ) ) {
 				<?php
 				switch ( $field_data->FIRST_INPUT_DELAY_MS->category ) {
 					case 'FAST':
-						echo '<i class="sui-icon-check-tick sui-success sui-md" aria-hidden="true"></i>';
+						echo '<span class="sui-icon-check-tick sui-success sui-md" aria-hidden="true"></span>';
 						break;
 					case 'AVERAGE':
-						echo '<i class="sui-icon-warning-alert sui-warning sui-md" aria-hidden="true"></i>';
+						echo '<span class="sui-icon-warning-alert sui-warning sui-md" aria-hidden="true"></span>';
 						break;
 					case 'SLOW':
 					default:
-						echo '<i class="sui-icon-warning-alert sui-error sui-md" aria-hidden="true"></i>';
+						echo '<span class="sui-icon-warning-alert sui-error sui-md" aria-hidden="true"></span>';
 						break;
 				}
 				?>

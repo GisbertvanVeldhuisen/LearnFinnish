@@ -19,6 +19,7 @@ if ( $this->has_meta_boxes( 'summary' ) ) {
 	<div class="sui-row-with-sidenav">
 		<?php $this->show_tabs(); ?>
 		<div>
+			<?php do_action( 'wphb_performance_cool_down_notice' ); ?>
 			<?php $this->do_meta_boxes( $this->get_current_tab() ); ?>
 		</div>
 	</div><!-- end row -->

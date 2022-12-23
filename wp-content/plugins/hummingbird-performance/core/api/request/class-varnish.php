@@ -79,4 +79,39 @@ class Varnish extends Request {
 		return $body;
 	}
 
+	/**
+	 * Add an alternative method to purge Varnish cache.
+	 *
+	 * @since 2.7.2
+	 *
+	 * @param string $path  Relative path.
+	 */
+	public function clear_cache( $path ) {
+		$url = $this->get_api_url( $path );
+
+		if ( empty( $path ) || '/' === $path ) {
+			$request = 'PURGE';
+		} else {
+			$request = 'PURGEALL';
+		}
+
+		$ch = curl_init();
+
+		curl_setopt_array(
+			$ch,
+			array(
+				CURLOPT_URL                  => $url,
+				CURLOPT_RETURNTRANSFER       => true,
+				CURLOPT_NOBODY               => true,
+				CURLOPT_HEADER               => false,
+				CURLOPT_CUSTOMREQUEST        => $request,
+				CURLOPT_FOLLOWLOCATION       => true,
+				CURLOPT_DNS_USE_GLOBAL_CACHE => false,
+			)
+		);
+
+		curl_exec( $ch );
+		curl_close( $ch );
+	}
+
 }

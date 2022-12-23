@@ -1,26 +1,25 @@
-import Fetcher from '../utils/fetcher';
+/* global WPHB_Admin */
+/* global wphbHistoricFieldData */
+/* global google */
 
-( function( $ ) {
+import Fetcher from '../utils/fetcher';
+import PerfScanner from '../scanners/PerfScanner';
+
+( function ( $ ) {
 	'use strict';
 	WPHB_Admin.performance = {
 		module: 'performance',
 		iteration: 0,
 		progress: 0,
-		timer: false,
 		pressedKeys: [],
 		key_timer: false,
 
 		init() {
 			const self = this;
 
-			/** @member {Array} wphbPerformanceStrings */
-			if ( wphbPerformanceStrings ) {
-				this.strings = wphbPerformanceStrings;
-			}
-
 			this.wphbSetInterval();
 
-			document.onkeyup = function( e ) {
+			document.onkeyup = function ( e ) {
 				clearInterval( self.key_timer );
 				self.wphbSetInterval();
 				e = e || event;
@@ -40,18 +39,20 @@ import Fetcher from '../utils/fetcher';
 				}
 			};
 
+			// Init scanner.
+			this.scanner = new PerfScanner( 100, 0 );
+
 			// Run performance test from empty report meta box.
-			$( '#run-performance-test' ).on( 'click', function( e ) {
+			$( '#run-performance-test' ).on( 'click', function ( e ) {
 				e.preventDefault();
 
 				window.SUI.openModal(
 					'run-performance-test-modal',
-					'wpbody-content',
-					undefined,
-					false
+					'wpbody-content'
 				);
+
 				$( this ).attr( 'disabled', true );
-				self.performanceTest( self.strings.finishedTestURLsLink );
+				self.scanner.start();
 			} );
 
 			// If a hash is present in URL, let's open the rule extra content
@@ -72,18 +73,13 @@ import Fetcher from '../utils/fetcher';
 			}
 
 			// Save performance test settings
-			$( 'body' ).on( 'submit', '.settings-frm', function( e ) {
+			$( 'body' ).on( 'submit', '.settings-frm', function ( e ) {
 				e.preventDefault();
 				const formData = $( this ).serialize();
 
 				Fetcher.performance
 					.savePerformanceTestSettings( formData )
-					.then( () =>
-						WPHB_Admin.notices.show(
-							'wphb-ajax-update-notice',
-							true
-						)
-					);
+					.then( () => WPHB_Admin.notices.show() );
 				return false;
 			} );
 
@@ -132,7 +128,7 @@ import Fetcher from '../utils/fetcher';
 			 *
 			 * @since 2.0.0
 			 */
-			$( 'input[name=desktop-report]' ).on( 'change', function( e ) {
+			$( 'input[name=desktop-report]' ).on( 'change', function ( e ) {
 				const otherClass =
 					'desktop_report-true' === e.target.id
 						? 'desktop_report-false'
@@ -148,7 +144,7 @@ import Fetcher from '../utils/fetcher';
 			 *
 			 * @since 2.0.0
 			 */
-			$( 'input[name=subsite-tests]' ).on( 'change', function( e ) {
+			$( 'input[name=subsite-tests]' ).on( 'change', function ( e ) {
 				const otherClass =
 					'subsite_tests-false' === e.target.id
 						? 'subsite_tests-true'
@@ -164,7 +160,7 @@ import Fetcher from '../utils/fetcher';
 			 *
 			 * @since 2.0.0
 			 */
-			$( 'input[name=report-type]' ).on( 'change', function( e ) {
+			$( 'input[name=report-type]' ).on( 'change', function ( e ) {
 				const divs = document.querySelectorAll(
 					'input[name=report-type]'
 				);
@@ -181,7 +177,7 @@ import Fetcher from '../utils/fetcher';
 			 */
 			$( 'select[name=wphb-performance-report-type]' ).on(
 				'change',
-				function( e ) {
+				function ( e ) {
 					const url = new URL( window.location );
 					url.searchParams.set( 'type', e.target.value );
 					window.location = url;
@@ -194,105 +190,10 @@ import Fetcher from '../utils/fetcher';
 		wphbSetInterval() {
 			const self = this;
 
-			this.key_timer = window.setInterval( function() {
+			this.key_timer = window.setInterval( function () {
 				// Clean pressedKeys every 1sec
 				self.pressedKeys = [];
 			}, 1000 );
-		},
-
-		performanceTest( redirect ) {
-			const self = this;
-
-			if ( typeof redirect === 'undefined' ) {
-				redirect = false;
-			}
-
-			// Update progress bar
-			this.updateProgressBar();
-
-			Fetcher.common
-				.call( 'wphb_performance_run_test' )
-				.then( ( response ) => {
-					if ( ! response.finished ) {
-						// Try again 3 seconds later
-						window.setTimeout( function() {
-							self.performanceTest( redirect );
-						}, 3000 );
-					} else if ( redirect ) {
-						self.progress = 100;
-						self.updateProgressBar();
-
-						window.WPHB_Admin.Tracking.track(
-							'plugin_scan_finished',
-							{
-								score_mobile: response.mobileScore,
-								score_desktop: response.desktopScore,
-							}
-						);
-
-						// Give a second for the report to be saved to the db.
-						window.setTimeout( function() {
-							window.location = redirect;
-						}, 2000 );
-					}
-				} );
-		},
-
-		updateProgressBar() {
-			const self = this;
-
-			// Test has been initialized.
-			if ( 0 === this.progress ) {
-				this.progress = 2;
-
-				this.timer = window.setInterval( function() {
-					self.progress += 1;
-					self.updateProgressBar();
-				}, 100 );
-			}
-
-			const progressStatus = $(
-				'.sui-progress-state .sui-progress-state-text'
-			);
-
-			if ( 3 === this.progress ) {
-				progressStatus.text( this.strings.scanRunning );
-			}
-
-			if ( 73 === this.progress ) {
-				clearInterval( this.timer );
-				this.timer = false;
-
-				this.timer = window.setInterval( function() {
-					self.progress += 1;
-					self.updateProgressBar();
-				}, 1000 );
-
-				progressStatus.text( this.strings.scanAnalyzing );
-			}
-
-			if ( 99 === this.progress ) {
-				progressStatus.text( this.strings.scanWaiting );
-				clearInterval( this.timer );
-				this.timer = false;
-			}
-
-			$( '.sui-progress-block .sui-progress-text span' ).text(
-				this.progress + '%'
-			);
-			$( '.sui-progress-block .sui-progress-bar span' ).attr(
-				'style',
-				'width:' + this.progress + '%'
-			);
-
-			if ( 100 === this.progress ) {
-				$( '.sui-progress-block i.sui-icon-loader' )
-					.removeClass( 'sui-icon-loader sui-loading' )
-					.addClass( 'sui-icon-check' );
-				progressStatus.text( this.strings.scanComplete );
-				clearInterval( this.timer );
-				this.timer = false;
-			}
 		},
 
 		/**
@@ -300,8 +201,8 @@ import Fetcher from '../utils/fetcher';
 		 *
 		 * @since 2.0.0
 		 *
-		 * @param strings
-		 * @param chartID
+		 * @param {Object} strings
+		 * @param {string} chartID
 		 */
 		drawChart( strings, chartID ) {
 			const data = google.visualization.arrayToDataTable( [

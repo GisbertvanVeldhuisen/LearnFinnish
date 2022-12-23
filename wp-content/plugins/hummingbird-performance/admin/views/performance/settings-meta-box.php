@@ -118,7 +118,7 @@ $this->modal( 'dismiss-report' );
 			</div>
 			<div class="sui-box-settings-col-2">
 				<a class="sui-button sui-button-ghost" id="dismiss-report" data-modal-open="dismiss-report-modal" data-modal-open-focus="dismiss_report" data-modal-mask="true" <?php disabled( $dismissed ); ?>>
-					<i class="sui-icon-eye-hide" aria-hidden="true"></i>
+					<span class="sui-icon-eye-hide" aria-hidden="true"></span>
 					<?php esc_html_e( 'Ignore Results', 'wphb' ); ?>
 				</a>
 

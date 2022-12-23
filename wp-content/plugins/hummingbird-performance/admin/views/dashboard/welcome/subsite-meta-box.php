@@ -20,20 +20,25 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+$branded_image = apply_filters( 'wpmudev_branding_hero_image', '' );
 ?>
 
-<div class="sui-summary-image-space" aria-hidden="true"></div>
+<?php if ( $branded_image ) : ?>
+	<div class="sui-summary-image-space" aria-hidden="true" style="background-image: url('<?php echo esc_url( $branded_image ); ?>')"></div>
+<?php else : ?>
+	<div class="sui-summary-image-space" aria-hidden="true"></div>
+<?php endif; ?>
 <div class="sui-summary-segment">
 	<div class="sui-summary-details">
 		<?php if ( $last_report && ! is_wp_error( $last_report ) && ! $report_dismissed ) : ?>
 			<span class="sui-summary-large"><?php echo esc_html( $last_report->{$report_type}->score ); ?></span>
-			<i aria-hidden="true" class="sui-icon-<?php echo esc_attr( Performance::get_impact_class( $last_report->{$report_type}->score, 'icon' ) ); ?> sui-md sui-<?php echo esc_attr( Performance::get_impact_class( $last_report->{$report_type}->score ) ); ?>"></i>
+			<span aria-hidden="true" class="sui-icon-<?php echo esc_attr( Performance::get_impact_class( $last_report->{$report_type}->score, 'icon' ) ); ?> sui-md sui-<?php echo esc_attr( Performance::get_impact_class( $last_report->{$report_type}->score ) ); ?>"></span>
 			<span class='sui-summary-percent'>/100</span>
 		<?php elseif ( $is_doing_report ) : ?>
 			<div class="sui-progress-text sui-icon-loader sui-loading"></div>
 		<?php elseif ( $report_dismissed && isset( $last_report->{$report_type}->score ) ) : ?>
 			<span class="sui-summary-large"><?php echo esc_html( $last_report->{$report_type}->score ); ?></span>
-			<i aria-hidden="true" class="sui-icon-info sui-md"></i>
+			<span aria-hidden="true" class="sui-icon-info sui-md"></span>
 			<span class='sui-summary-percent'>/100</span>
 		<?php else : ?>
 			&mdash;

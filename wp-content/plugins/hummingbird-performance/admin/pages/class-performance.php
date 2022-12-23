@@ -74,10 +74,11 @@ class Performance extends Page {
 	 */
 	public function render_header() {
 		if ( filter_input( INPUT_GET, 'report-dismissed' ) ) {
-			$this->admin_notices->show( 'updated', __( 'You have successfully ignored this performance test.', 'wphb' ), 'success' );
+			$this->admin_notices->show_floating( __( 'You have successfully ignored this performance test.', 'wphb' ) );
 		}
 
 		add_action( 'wphb_sui_header_sui_actions_right', array( $this, 'add_header_actions' ) );
+		add_action( 'wphb_performance_cool_down_notice', array( $this, 'render_cool_down_notice' ) );
 
 		parent::render_header();
 	}
@@ -100,7 +101,7 @@ class Performance extends Page {
 		<label for="wphb-performance-report-type" class="inline-label header-label sui-hidden-xs sui-hidden-sm">
 			<?php esc_html_e( 'Show results for', 'wphb' ); ?>
 		</label>
-		<select name="wphb-performance-report-type" class="sui-select-sm" id="wphb-performance-report-type">
+		<select name="wphb-performance-report-type" class="sui-select sui-select-sm" id="wphb-performance-report-type" data-width="100px">
 			<?php foreach ( $types as $type => $label ) : ?>
 				<?php
 				$data_url = add_query_arg(
@@ -134,6 +135,39 @@ class Performance extends Page {
 				'report' => $this->report,
 			)
 		);
+	}
+
+	/**
+	 * Show a 5-minute cool down notice.
+	 *
+	 * @since 2.7.1
+	 */
+	public function render_cool_down_notice() {
+		if ( true === $this->can_run_test ) {
+			return;
+		}
+		?>
+		<div role="alert" class="sui-box sui-summary sui-summary-sm wphb-box-notice wphb-notice-info" aria-live="assertive" style="background-image: none">
+			<span class="sui-icon-info" aria-hidden="true"></span>
+			<div class="sui-summary-segment">
+				<div class="sui-summary-details sui-no-padding-left">
+					<span class="sui-summary-sub sui-no-margin-bottom">
+						<?php
+						printf( /* translators: %d: number of minutes. */
+							_n(
+								'Hummingbird is just catching her breath - you can run another test in %d minute.',
+								'Hummingbird is just catching her breath - you can run another test in %d minutes.',
+								$this->can_run_test,
+								'wphb'
+							),
+							number_format_i18n( $this->can_run_test )
+						);
+						?>
+					</span>
+				</div>
+			</div>
+		</div>
+		<?php
 	}
 
 	/**

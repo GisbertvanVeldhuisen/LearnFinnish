@@ -1,7 +1,8 @@
-const Row = ( _element, _filter, _filter_sec ) => {
+const Row = ( _element, _filter, _filter_sec, _filter_type ) => {
 	let $el = _element,
 		filter = _filter.toLowerCase(),
 		filterSecondary = false,
+		filterType = _filter_type.toLowerCase(),
 		selected = false,
 		visible = true;
 
@@ -63,6 +64,18 @@ const Row = ( _element, _filter, _filter_sec ) => {
 
 			text = text.toLowerCase();
 			return filterSecondary === text;
+		},
+
+		matchTypeFilter( text ) {
+			if ( text === '' || ! filterType ) {
+				return true;
+			}
+
+			if ( text === 'all' ) {
+				return true;
+			}
+
+			return filterType === text;
 		},
 
 		isVisible() {

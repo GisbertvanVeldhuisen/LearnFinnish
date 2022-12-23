@@ -219,12 +219,20 @@ class Scanner {
 
 		$result = array();
 
-		$args             = array(
+		$args = array(
 			'timeout'   => 0.01,
 			'cookies'   => $cookies,
 			'blocking'  => false,
 			'sslverify' => false,
 		);
+
+		// Add support for basic auth in WPMU DEV staging.
+		if ( isset( $_SERVER['WPMUDEV_HOSTING_ENV'] ) && 'staging' === $_SERVER['WPMUDEV_HOSTING_ENV'] && isset( $_SERVER['PHP_AUTH_USER'] ) ) {
+			$args['headers'] = array(
+				'Authorization' => 'Basic ' . base64_encode( $_SERVER['PHP_AUTH_USER'] . ':' . $_SERVER['PHP_AUTH_PW'] ),
+			);
+		}
+
 		$result['cookie'] = wp_remote_get( $url, $args );
 
 		// One call logged out.

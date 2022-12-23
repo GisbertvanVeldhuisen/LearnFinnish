@@ -46,11 +46,11 @@ if ( ! defined( 'ABSPATH' ) ) {
 				</p>
 			</div>
 
-			<div class="sui-box-body sui-content-center">
+			<div class="sui-box-body sui-content-center wphb-performance-scan-modal">
 				<div class="sui-progress-block">
 					<div class="sui-progress">
 						<span class="sui-progress-icon" aria-hidden="true">
-							<i class="sui-icon-loader sui-loading"></i>
+							<span class="sui-icon-loader sui-loading"></span>
 						</span>
 						<div class="sui-progress-text">
 							<span>0%</span>

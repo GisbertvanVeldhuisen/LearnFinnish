@@ -19,20 +19,25 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-$perf_link = \Hummingbird\Core\Utils::get_admin_menu_url( 'performance' ) . '&view=audits&type=' . $type;
+$perf_link     = \Hummingbird\Core\Utils::get_admin_menu_url( 'performance' ) . '&view=audits&type=' . $type;
+$branded_image = apply_filters( 'wpmudev_branding_hero_image', '' );
 ?>
 
-<div class="sui-summary-image-space" aria-hidden="true"></div>
+<?php if ( $branded_image ) : ?>
+	<div class="sui-summary-image-space" aria-hidden="true" style="background-image: url('<?php echo esc_url( $branded_image ); ?>')"></div>
+<?php else : ?>
+	<div class="sui-summary-image-space" aria-hidden="true"></div>
+<?php endif; ?>
 <div class="sui-summary-segment">
 	<div class="sui-summary-details">
 		<?php if ( $last_report && ! is_wp_error( $last_report ) && ! $report_dismissed ) : ?>
 			<span class="sui-summary-large"><?php echo esc_html( $last_report->{$type}->score ); ?></span>
-			<i aria-hidden="true" class="sui-icon-<?php echo esc_attr( Performance::get_impact_class( $last_report->{$type}->score, 'icon' ) ); ?> sui-md sui-<?php echo esc_attr( Performance::get_impact_class( $last_report->{$type}->score ) ); ?>"></i>
+			<span aria-hidden="true" class="sui-icon-<?php echo esc_attr( Performance::get_impact_class( $last_report->{$type}->score, 'icon' ) ); ?> sui-md sui-<?php echo esc_attr( Performance::get_impact_class( $last_report->{$type}->score ) ); ?>"></span>
 			<span class='sui-summary-percent'>/100</span>
 		<?php elseif ( $report_dismissed ) : ?>
 			<?php if ( isset( $last_report->{$type}->score ) ) : ?>
 				<span class="sui-summary-large"><?php echo esc_html( $last_report->{$type}->score ); ?></span>
-				<i aria-hidden="true" class="sui-icon-info sui-md"></i>
+				<span aria-hidden="true" class="sui-icon-info sui-md"></span>
 				<span class='sui-summary-percent'>/100</span>
 			<?php else : ?>
 				<span class="sui-summary-large">-</span>
@@ -73,7 +78,7 @@ $perf_link = \Hummingbird\Core\Utils::get_admin_menu_url( 'performance' ) . '&vi
 				<?php else : ?>
 					<a href="<?php echo esc_url( $perf_link . '#wphb-box-performance-audits-opportunities' ); ?>">
 						<?php if ( is_null( $last_report->{$type}->audits->opportunities ) ) : ?>
-							<i aria-hidden="true" class="sui-icon-check-tick sui-lg sui-success"></i>
+							<span aria-hidden="true" class="sui-icon-check-tick sui-lg sui-success"></span>
 						<?php else : ?>
 							<span class="sui-tag sui-tag-<?php echo esc_attr( Performance::get_audits_class( $last_report->{$type}->audits->opportunities ) ); ?>" style="cursor: pointer;">
 								<?php echo esc_html( $opportunities ); ?>
@@ -91,7 +96,7 @@ $perf_link = \Hummingbird\Core\Utils::get_admin_menu_url( 'performance' ) . '&vi
 				<?php else : ?>
 					<a href="<?php echo esc_url( $perf_link . '#wphb-box-performance-audits-diagnostics' ); ?>">
 						<?php if ( is_null( $last_report->{$type}->audits->diagnostics ) ) : ?>
-							<i aria-hidden="true" class="sui-icon-check-tick sui-lg sui-success"></i>
+							<span aria-hidden="true" class="sui-icon-check-tick sui-lg sui-success"></span>
 						<?php else : ?>
 						<span class="sui-tag sui-tag-<?php echo esc_attr( Performance::get_audits_class( $last_report->{$type}->audits->diagnostics ) ); ?>" style="cursor: pointer;">
 							<?php echo esc_html( $diagnostics ); ?>

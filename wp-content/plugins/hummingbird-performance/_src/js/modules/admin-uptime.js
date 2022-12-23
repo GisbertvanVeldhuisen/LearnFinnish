@@ -1,13 +1,13 @@
 /* global WPHB_Admin */
-/* global wphbUptimeStrings */
 /* global google */
 
 /**
  * Internal dependencies
  */
 import Fetcher from '../utils/fetcher';
+import { getLink } from '../utils/helpers';
 
-( function( $ ) {
+( function ( $ ) {
 	WPHB_Admin.uptime = {
 		module: 'uptime',
 		$dataRangeSelector: null,
@@ -19,14 +19,13 @@ import Fetcher from '../utils/fetcher';
 		dateFormat: 'MMM d',
 		init() {
 			this.$spinner = $( '.spinner' );
-			this.strings = wphbUptimeStrings;
 			this.$dataRangeSelector = $( '#wphb-uptime-data-range' );
 			this.chartData = $( '#uptime-chart-json' ).val();
 			this.downtimeChartData = $( '#downtime-chart-json' ).val();
 			this.$disableUptime = $( '#wphb-disable-uptime' );
 			this.dataRange = this.getUrlParameter( 'data-range' );
 
-			this.$dataRangeSelector.change( function() {
+			this.$dataRangeSelector.on( 'change', function () {
 				window.location.href = $( this )
 					.find( ':selected' )
 					.data( 'url' );
@@ -40,7 +39,7 @@ import Fetcher from '../utils/fetcher';
 				} );
 			}
 
-			this.$disableUptime.on( 'click', function( e ) {
+			this.$disableUptime.on( 'click', function ( e ) {
 				e.preventDefault();
 				self.$spinner.css( 'visibility', 'visible' );
 				const value = $( this ).is( ':checked' );
@@ -49,15 +48,15 @@ import Fetcher from '../utils/fetcher';
 					self.$spinner.css( 'visibility', 'hidden' );
 				} else {
 					// you have 3 seconds to change your mind
-					self.timer = setTimeout( function() {
-						location.href = self.strings.disableUptimeURL;
+					self.timer = setTimeout( function () {
+						location.href = getLink( 'disableUptime' );
 					}, 3000 );
 				}
 			} );
 
 			/* If data range has been selected change the tab urls to retain the chosen range */
 			if ( undefined !== this.dataRange ) {
-				$( '.wrap-wphb-uptime .wphb-tab a' ).each( function() {
+				$( '.wrap-wphb-uptime .wphb-tab a' ).each( function () {
 					this.href += '&data-range=' + self.dataRange;
 				} );
 			}
@@ -78,7 +77,7 @@ import Fetcher from '../utils/fetcher';
 			}
 
 			/* Re-check Uptime status */
-			$( '#uptime-re-check-status' ).on( 'click', function( e ) {
+			$( '#uptime-re-check-status' ).on( 'click', function ( e ) {
 				e.preventDefault();
 				location.reload();
 			} );
@@ -87,7 +86,7 @@ import Fetcher from '../utils/fetcher';
 			$( '#wphb-uptime-reporting' ).on(
 				'click',
 				'.wphb-resend-recipient',
-				function( e ) {
+				function ( e ) {
 					const self = $( this );
 					self.attr( 'disabled', 'disabled' );
 					Fetcher.uptime
@@ -96,12 +95,7 @@ import Fetcher from '../utils/fetcher';
 							e.currentTarget.dataset.email
 						)
 						.then( ( response ) => {
-							WPHB_Admin.notices.show(
-								'wphb-ajax-update-notice',
-								false,
-								'success',
-								response.message
-							);
+							WPHB_Admin.notices.show( response.message );
 							self.removeAttr( 'disabled' );
 						} );
 				}
@@ -171,7 +165,7 @@ import Fetcher from '../utils/fetcher';
 			);
 			chart.draw( data, options );
 
-			$( window ).resize( function() {
+			$( window ).resize( function () {
 				chart.draw( data, options );
 			} );
 		},
@@ -227,9 +221,9 @@ import Fetcher from '../utils/fetcher';
 			google.visualization.events.addListener(
 				chart,
 				'ready',
-				function() {
+				function () {
 					const bars = container.getElementsByTagName( 'rect' );
-					Array.prototype.forEach.call( bars, function( bar ) {
+					Array.prototype.forEach.call( bars, function ( bar ) {
 						if ( parseFloat( bar.getAttribute( 'x' ) ) > 0 ) {
 							origColors.push( bar.getAttribute( 'fill' ) );
 						}
@@ -239,7 +233,7 @@ import Fetcher from '../utils/fetcher';
 			google.visualization.events.addListener(
 				chart,
 				'onmouseover',
-				function( e ) {
+				function ( e ) {
 					// set original color
 					const bars = container.getElementsByTagName( 'rect' );
 					bars[ bars.length - 1 ].setAttribute(
@@ -259,7 +253,7 @@ import Fetcher from '../utils/fetcher';
 			);
 			chart.draw( dataTable, options );
 
-			$( window ).resize( function() {
+			$( window ).resize( function () {
 				chart.draw( dataTable, options );
 			} );
 		},

@@ -118,6 +118,8 @@ class Utils {
 			$path = path_join( $root, $path );
 		}
 
+		$path = wp_normalize_path( $path );
+
 		return apply_filters( 'wphb_src_to_path', $path, $src );
 	}
 
@@ -129,84 +131,73 @@ class Utils {
 	public static function enqueue_admin_scripts( $ver ) {
 		wp_enqueue_script( 'wphb-admin', WPHB_DIR_URL . 'admin/assets/js/wphb-app.min.js', array( 'jquery', 'underscore' ), $ver, true );
 
-		$i10n = array(
-			'errorCachePurge'        => __( 'There was an error during the cache purge. Check folder permissions are 755 for /wp-content/wphb-cache or delete directory manually.', 'wphb' ),
-			'successGravatarPurge'   => __( 'Gravatar cache purged.', 'wphb' ),
-			'successPageCachePurge'  => __( 'Page cache purged.', 'wphb' ),
-			'errorRecheckStatus'     => __( 'There was an error re-checking the caching status, please try again later.', 'wphb' ),
-			'successRecheckStatus'   => __( 'Browser caching status updated.', 'wphb' ),
-			'successCloudflarePurge' => __( 'Cloudflare cache successfully purged. Please wait 30 seconds for the purge to complete.', 'wphb' ),
-			'successRedisPurge'      => __( 'Your cache has been cleared.', 'wphb' ),
-		);
-		wp_localize_script( 'wphb-admin', 'wphbCachingStrings', $i10n );
-
-		$performance = self::get_module( 'performance' );
-		$last_report = $performance::get_last_report();
-		$mobile_score  = '-';
-		$desktop_score = '-';
+		$last_report = Modules\Performance::get_last_report();
 		if ( is_object( $last_report ) && isset( $last_report->data ) ) {
 			$desktop_score = is_object( $last_report->data->desktop ) ? $last_report->data->desktop->score : '-';
 			$mobile_score  = is_object( $last_report->data->mobile ) ? $last_report->data->mobile->score : '-';
 		}
 
 		$i10n = array(
-			'previousScoreMobile'  => $mobile_score,
-			'previousScoreDesktop' => $desktop_score,
-			'finishedTestURLsLink' => self::get_admin_menu_url( 'performance' ) . '&view=audits',
-			'removeButtonText'     => __( 'Remove', 'wphb' ),
-			'youLabelText'         => __( 'You', 'wphb' ),
-			'scanRunning'          => __( 'Running speed test...', 'wphb' ),
-			'scanAnalyzing'        => __( 'Analyzing data and preparing report...', 'wphb' ),
-			'scanWaiting'          => __( 'Test is taking a little longer than expected, hang in there…', 'wphb' ),
-			'scanComplete'         => __( 'Test complete! Reloading…', 'wphb' ),
-		);
-		wp_localize_script( 'wphb-admin', 'wphbPerformanceStrings', $i10n );
-
-		$i10n = array(
-			'finishedTestURLsLink' => self::get_admin_menu_url(),
-		);
-		wp_localize_script( 'wphb-admin', 'wphbDashboardStrings', $i10n );
-
-		$url  = add_query_arg( '_wpnonce', wp_create_nonce( 'wphb-toggle-uptime' ), self::get_admin_menu_url( 'uptime' ) );
-		$i10n = array(
-			'enableUptimeURL'  => add_query_arg( 'action', 'enable', $url ),
-			'disableUptimeURL' => add_query_arg( 'action', 'disable', $url ),
-		);
-		wp_localize_script( 'wphb-admin', 'wphbUptimeStrings', $i10n );
-
-		$cf   = self::get_module( 'cloudflare' );
-		$i10n = array(
 			'cloudflare' => array(
 				'is' => array(
-					'connected' => $cf->is_connected() && $cf->is_zone_selected(),
+					'connected' => self::get_module( 'cloudflare' )->is_connected() && self::get_module( 'cloudflare' )->is_zone_selected(),
 				),
 			),
 			'nonces'     => array(
 				'HBFetchNonce' => wp_create_nonce( 'wphb-fetch' ),
 			),
-			'urls'       => array(
-				'cachingEnabled' => add_query_arg( 'view', 'caching', self::get_admin_menu_url( 'caching' ) ),
-				'resetSettings'  => add_query_arg( 'wphb-clear', 'all', self::get_admin_menu_url() ),
-			),
 			'strings'    => array(
-				'htaccessUpdated'       => __( 'Your .htaccess file has been updated', 'wphb' ),
-				'htaccessUpdatedFailed' => __( 'There was an error updating the .htaccess file', 'wphb' ),
-				'errorSettingsUpdate'   => __( 'Error updating settings', 'wphb' ),
-				'successUpdate'         => __( 'Settings updated', 'wphb' ),
-				'deleteAll'             => __( 'Delete All', 'wphb' ),
-				'db_delete'             => __( 'Are you sure you wish to delete', 'wphb' ),
-				'db_entries'            => __( 'database entries', 'wphb' ),
-				'db_backup'             => __( 'Make sure you have a current backup just in case.', 'wphb' ),
-				'successRecipientAdded' => __( ' has been added as a recipient but you still need to save your changes below to set this live.', 'wphb' ),
-				'confirmRecipient'      => __( 'Your changes have been saved successfully. Any new recipients will receive an email shortly to confirm their subscription to these emails.', 'wphb' ),
-				'awaitingConfirmation'  => __( 'Awaiting confirmation', 'wphb' ),
-				'resendEmail'           => __( 'Resend email', 'wphb' ),
+				/* Performance test strings */
+				'previousScoreMobile'    => isset( $mobile_score ) ? $mobile_score : '-',
+				'previousScoreDesktop'   => isset( $desktop_score ) ? $desktop_score : '-',
+				'removeButtonText'       => __( 'Remove', 'wphb' ),
+				'youLabelText'           => __( 'You', 'wphb' ),
+				'scanRunning'            => __( 'Running speed test...', 'wphb' ),
+				'scanAnalyzing'          => __( 'Analyzing data and preparing report...', 'wphb' ),
+				'scanWaiting'            => __( 'Test is taking a little longer than expected, hang in there…', 'wphb' ),
+				'scanComplete'           => __( 'Test complete! Reloading...', 'wphb' ),
+				/* Caching strings */
+				'errorCachePurge'        => __( 'There was an error during the cache purge. Check folder permissions are 755 for /wp-content/wphb-cache or delete directory manually.', 'wphb' ),
+				'successGravatarPurge'   => __( 'Gravatar cache purged.', 'wphb' ),
+				'successPageCachePurge'  => __( 'Page cache purged.', 'wphb' ),
+				'errorRecheckStatus'     => __( 'There was an error re-checking the caching status, please try again later.', 'wphb' ),
+				'successRecheckStatus'   => __( 'Browser caching status updated.', 'wphb' ),
+				'successCloudflarePurge' => __( 'Cloudflare cache successfully purged. Please wait 30 seconds for the purge to complete.', 'wphb' ),
+				'successRedisPurge'      => __( 'Your cache has been cleared.', 'wphb' ),
+				/* Misc */
+				'htaccessUpdated'        => __( 'Your .htaccess file has been updated', 'wphb' ),
+				'htaccessUpdatedFailed'  => __( 'There was an error updating the .htaccess file', 'wphb' ),
+				'errorSettingsUpdate'    => __( 'Error updating settings', 'wphb' ),
+				'successUpdate'          => __( 'Settings updated', 'wphb' ),
+				'deleteAll'              => __( 'Delete All', 'wphb' ),
+				'db_delete'              => __( 'Are you sure you wish to delete', 'wphb' ),
+				'db_entries'             => __( 'database entries', 'wphb' ),
+				'db_backup'              => __( 'Make sure you have a current backup just in case.', 'wphb' ),
+				'successRecipientAdded'  => __( ' has been added as a recipient but you still need to save your changes below to set this live.', 'wphb' ),
+				'confirmRecipient'       => __( 'Your changes have been saved successfully. Any new recipients will receive an email shortly to confirm their subscription to these emails.', 'wphb' ),
+				'awaitingConfirmation'   => __( 'Awaiting confirmation', 'wphb' ),
+				'resendEmail'            => __( 'Resend email', 'wphb' ),
+				'dismissLabel'           => __( 'Dismiss', 'wphb' ),
+				'successAdvPurgeCache'   => __( 'Preload cache purged successfully.', 'wphb' ),
+				'successAdvPurgeMinify'  => __( 'All database data and Custom Post Type information related to Asset Optimization has been cleared successfully.', 'wphb' ),
+				'successAoOrphanedPurge' => __( 'Database entries removed successfully.', 'wphb' ),
+			),
+			'links'      => array(
+				'audits'        => self::get_admin_menu_url( 'performance' ) . '&view=audits',
+				'tutorials'     => self::get_admin_menu_url( 'tutorials' ),
+				'disableUptime' => add_query_arg(
+					array(
+						'action'   => 'disable',
+						'_wpnonce' => wp_create_nonce( 'wphb-toggle-uptime' ),
+					),
+					self::get_admin_menu_url( 'uptime' )
+				),
+				'resetSettings' => add_query_arg( 'wphb-clear', 'all', self::get_admin_menu_url() ),
 			),
 		);
 
 		$minify_module = self::get_module( 'minify' );
-
-		$is_scanning = $minify_module->scanner->is_scanning();
+		$is_scanning   = $minify_module->scanner->is_scanning();
 
 		if ( $minify_module->is_on_page() || $is_scanning ) {
 			$i10n = array_merge_recursive(
@@ -221,6 +212,7 @@ class Utils {
 							'currentScanStep' => $minify_module->scanner->get_current_scan_step(),
 							'totalSteps'      => $minify_module->scanner->get_scan_steps(),
 							'showCDNModal'    => ! is_multisite(),
+							'showSwitchModal' => (bool) get_option( 'wphb-minification-show-config_modal' ),
 						),
 					),
 					'strings'      => array(
@@ -234,6 +226,10 @@ class Utils {
 					),
 				)
 			);
+		}
+
+		if ( ! apply_filters( 'wpmudev_branding_hide_doc_link', false ) && $minify_module->is_on_page( true ) ) {
+			wp_enqueue_script( 'wphb-react-tutorials', WPHB_DIR_URL . 'admin/assets/js/wphb-react-tutorials.min.js', array( 'wp-i18n' ), WPHB_VERSION, true );
 		}
 
 		global $wpdb, $wp_version;
@@ -331,13 +327,22 @@ class Utils {
 	public static function calculate_sum( $arr ) {
 		$sum = 0;
 
+		// Get separators from locale. Some Windows servers will return blank values.
+		$locale        = localeconv();
+		$thousands_sep = $locale['thousands_sep'] ?: ',';
+		$decimal_point = $locale['decimal_point'] ?: '.';
+
 		foreach ( $arr as $item => $value ) {
 			if ( is_null( $value ) ) {
 				continue;
 			}
 
 			// Remove spaces.
-			$sum += (float) str_replace( '&nbsp;', '', $value );
+			$sum += (float) str_replace(
+				array( '&nbsp;', $thousands_sep, $decimal_point ),
+				array( '', '', '.' ),
+				$value
+			);
 		}
 
 		return $sum;
@@ -427,12 +432,20 @@ class Utils {
 	public static function get_servers_dropdown( $selected = false ) {
 		$selected = $selected ? $selected : Module_Server::get_server_type();
 		?>
-		<select name="wphb-server-type" id="wphb-server-type" class="server-type">
+		<select class="sui-select" name="wphb-server-type" id="wphb-server-type" class="server-type">
 			<?php foreach ( Module_Server::get_servers() as $server => $server_name ) : ?>
 				<option value="<?php echo esc_attr( $server ); ?>" <?php selected( $server, $selected ); ?>>
-					<?php echo esc_html( $server_name ); ?>
+					<?php
+					if ( 'Apache/LiteSpeed' === $server_name ) {
+						$server_name = 'Apache';
+					}
+					echo esc_html( $server_name );
+					?>
 				</option>
 			<?php endforeach; ?>
+			<option value="litespeed" <?php selected( 'litespeed', $selected ); ?>>
+				Open LiteSpeed
+			</option>
 		</select>
 		<?php
 	}
@@ -448,7 +461,7 @@ class Utils {
 			'selected'  => false,
 			'name'      => 'expiry-select',
 			'id'        => false,
-			'class'     => '',
+			'class'     => 'sui-select',
 			'data-type' => '',
 		);
 
@@ -490,7 +503,7 @@ class Utils {
 	 */
 	public static function human_read_time_diff( $seconds ) {
 		if ( ! $seconds ) {
-			return false;
+			return __( 'Disabled', 'wphb' );
 		}
 
 		$minutes = 0;
@@ -619,7 +632,7 @@ class Utils {
 	 * @return string
 	 */
 	public static function get_link( $link_for, $campaign = 'hummingbird_pro_modal_upgrade' ) {
-		$domain   = 'https://premium.wpmudev.org';
+		$domain   = 'https://wpmudev.com';
 		$wp_org   = 'https://wordpress.org';
 		$utm_tags = "?utm_source=hummingbird&utm_medium=plugin&utm_campaign={$campaign}";
 
@@ -632,7 +645,7 @@ class Utils {
 				break;
 			case 'support':
 				if ( self::is_member() ) {
-					$link = "{$domain}/forums/forum/support#question{$utm_tags}";
+					$link = "{$domain}/hub/support/#get-support";
 				} else {
 					$link = "{$wp_org}/support/plugin/hummingbird-performance";
 				}
@@ -654,10 +667,13 @@ class Utils {
 				$link = "{$domain}/project/wp-smush-pro/{$utm_tags}";
 				break;
 			case 'hosting':
-				$link = "{$domain}/hub/hosting/{$utm_tags}";
+				$link = "{$domain}/hosting/{$utm_tags}";
 				break;
 			case 'wpmudev':
 				$link = "{$domain}/{$utm_tags}";
+				break;
+			case 'tutorials':
+				$link = "{$domain}/blog/tutorials/tutorial-category/hummingbird-pro/{$utm_tags}";
 				break;
 			default:
 				$link = '';
@@ -693,16 +709,22 @@ class Utils {
 				$anchor = '#gzip-compression';
 				break;
 			case 'wphb-minification':
-				$anchor = '#minification';
+				$anchor = '#asset-optimization';
+				break;
+			case 'wphb-advanced':
+				$anchor = '#advanced-tools';
 				break;
 			case 'wphb-uptime':
 				$anchor = '#uptime-monitoring-pro';
+				break;
+			case 'wphb-settings':
+				$anchor = '#settings';
 				break;
 			default:
 				$anchor = '';
 		}
 
-		return 'https://premium.wpmudev.org/docs/wpmu-dev-plugins/hummingbird/' . $anchor;
+		return 'https://wpmudev.com/docs/wpmu-dev-plugins/hummingbird/' . $anchor;
 	}
 
 	/**
@@ -710,7 +732,7 @@ class Utils {
 	 */
 	public static function still_having_trouble_link() {
 		esc_html_e( 'Still having trouble? ', 'wphb' );
-		if ( self::is_member() ) :
+		if ( self::is_member() && ! apply_filters( 'wpmudev_branding_hide_branding', false ) ) :
 			?>
 			<a target="_blank" href="<?php echo esc_url( self::get_link( 'chat' ) ); ?>">
 				<?php esc_html_e( 'Start a live chat.', 'wphb' ); ?>
@@ -798,7 +820,7 @@ class Utils {
 	 *
 	 * @param string $module Module slug.
 	 *
-	 * @return bool|Module|Modules\Page_Cache|Modules\GZip|Modules\Minify|Modules\Cloudflare|Modules\Uptime|Modules\Performance|Modules\Advanced|Modules\Redis
+	 * @return bool|Module|Modules\Page_Cache|Modules\GZip|Modules\Minify|Modules\Cloudflare|Modules\Uptime|Modules\Performance|Modules\Advanced|Modules\Redis|Modules\Caching
 	 */
 	public static function get_module( $module ) {
 		$modules = self::get_modules();
@@ -814,10 +836,11 @@ class Utils {
 	 */
 	public static function get_active_cache_modules() {
 		$modules = array(
-			'page_cache' => __( 'Page', 'wphb' ),
+			'page_cache' => __( 'Page Cache', 'wphb' ),
 			'cloudflare' => __( 'CloudFlare', 'wphb' ),
-			'gravatar'   => __( 'Gravatar', 'wphb' ),
-			'minify'     => __( 'Asset Optimization', 'wphb' ),
+			'gravatar'   => __( 'Gravatar Cache', 'wphb' ),
+			'minify'     => __( 'Asset Optimization Cache', 'wphb' ),
+			'redis'      => __( 'Redis Cache', 'wphb' ),
 		);
 
 		$hb_modules = self::get_modules();
@@ -866,11 +889,12 @@ class Utils {
 				}
 
 				$recommended = $mod->get_recommended_caching_values();
-
 				foreach ( $report as $type => $value ) {
-					if ( empty( $value ) || ( $recommended[ $type ]['value'] > $value ) ) {
+					$t = strtolower( $type );
+					if ( empty( $value ) || $recommended[ $t ]['value'] > $value ) {
 						$issues++;
 					}
+					unset( $t );
 				}
 				break;
 			case 'gzip':
@@ -936,6 +960,35 @@ class Utils {
 		}
 
 		return ( count( $collection['scripts'] ) + count( $collection['styles'] ) );
+	}
+
+	/**
+	 * Returns a list of incompatible plugins if any
+	 *
+	 * @return array
+	 */
+	public static function get_incompat_plugin_list() {
+		$plugins         = array();
+		$caching_plugins = array(
+			'autoptimize/autoptimize.php'               => 'Autoptimize',
+			'litespeed-cache/litespeed-cache.php'       => 'LiteSpeed Cache',
+			'speed-booster-pack/speed-booster-pack.php' => 'Speed Booster Pack',
+			'swift-performance-lite/performance.php'    => 'Swift Performance Lite',
+			'w3-total-cache/w3-total-cache.php'         => 'W3 Total Cache',
+			'wp-fastest-cache/wpFastestCache.php'       => 'WP Fastest Cache',
+			'wp-optimize/wp-optimize.php'               => 'WP-Optimize',
+			'wp-performance-score-booster/wp-performance-score-booster.php' => 'WP Performance Score Booster',
+			'wp-performance/wp-performance.php'         => 'WP Performance',
+			'wp-super-cache/wp-cache.php'               => 'WP Super Cache',
+		);
+
+		foreach ( $caching_plugins as $plugin => $plugin_name ) {
+			if ( is_plugin_active( $plugin ) ) {
+				$plugins[ $plugin ] = $plugin_name;
+			}
+		}
+
+		return $plugins;
 	}
 
 }

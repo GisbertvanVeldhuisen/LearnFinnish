@@ -1,53 +1,62 @@
-<section class="section section-contact">
+<div class="section section-footer">
     <div class="container">
-        <div class="row">
-            <div class="one-half">
-                <h3>Stuur mij mijn website offerte</h3>
-                <ul class="checkmark">
-                    <li>Geheel vrijblijvend</li>
-                    <li>Snelle reactie</li>
-                    <li>Uitgebreide informatie</li>
-                </ul>
+        <div class="column one-third">
+            <h3>Adress</h3>
+            <span>Learn Finnish</span>
+            <div>
+                <span class="icon location"></span>
+                <span><?php echo get_field('street', 'options'); ?></span>
             </div>
-            <div class="one-half">
-                <?php gravity_form( 1, false, false, false, '', true); ?>
+            <div>
+                <span class="icon city"></span>
+                <span><?php echo get_field('postal_code_city', 'options'); ?></span>
             </div>
         </div>
-    </div>
-</section>
-<section class="section section-footer">
-    <div class="container">
-        <div class="row">
-            <div class="one-third">
-                <h3>Navigeer</h3>
-                <?php wp_nav_menu('Primary'); ?>
+        <div class="column one-third">
+            <h3>Contact</h3>
+            <div>
+                <span class="icon email"></span>
+                <a href="mailto:<?php echo get_field('email', 'options'); ?>"></a><?php echo get_field('email', 'options'); ?>
             </div>
-            <div class="one-third">
-                <h3>Contact</h3>
-                <ul class="contact">
-                    <li><a href="tel:0619222249">0619222249</a></li>
-                    <li><a href="mailto:arno@argibe.nl">arno@argibe.nl</a></li>
-                    <li><a href="mailto:gisbert@argibe.nl">gisbert@argibe.nl</a></li>
-                </ul>
-            </div>
-            <div class="one-third">
-                <h3>Volg ons</h3>
-                <ul class="social">
-                    <li><a href="https://www.instagram.com/argibe.nl/"><img src="<?php echo get_template_directory_uri(); ?>/assets/img/insta.svg" alt="instagram"></a></li>
-                </ul>
+            <div>
+                <span class="icon phone"></span>
+                <a href="tel:<?php echo get_field('phone_number', 'options'); ?>"></a><?php echo get_field('phone_number', 'options'); ?>
             </div>
         </div>
-    </div>
-</section>
-<section class="section section-subfooter">
-    <div class="container">
-        <div class="row">
-            <div class="full">
-                <p>Copyright Argibe</p>
-            </div>
+        <div class="column one-third">
+            <h3>Contact</h3>
+            <?php gravity_form(3, true, false, false, '', true, 12); ?>
         </div>
     </div>
-</section>
+</div>
+<div class="section section-socket">
+    <div class="container">
+        <div class="logo-container">
+            <a href="<?php echo get_home_url(); ?>" title="home">
+                <?php echo wp_get_attachment_image(get_field('logo_footer', 'options'), 'logo', false); ?>
+            </a>
+        </div>
+
+        <div class="end">
+            <div class="social-media">
+                <div class="facebook">
+                    <span class="icon facebook"></span>
+                    <a href="<?php echo get_field('facebook', 'options'); ?>"></a>
+                </div>
+                <div class="instagram">
+                    <span class="icon instagram"></span>
+                    <a href="<?php echo get_field('instagram', 'options'); ?>"></a>
+                </div>
+                <div class="linkedin">
+                    <span class="icon linkedin"></span>
+                    <a href="<?php echo get_field('linkedin', 'options'); ?>"></a>
+                </div>
+            </div>
+            <?php wp_nav_menu('primary') ?>
+        </div
+    </div>
+</div>
+
 
 <?php wp_footer(); ?>
 

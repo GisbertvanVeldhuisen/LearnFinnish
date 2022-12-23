@@ -37,17 +37,12 @@ $title_class = $disable_redis ? ' justify-content-start' : '';
 				<img class="sui-image" alt="<?php esc_attr_e( 'Redis', 'wphb' ); ?>"
 					src="<?php echo esc_url( WPHB_DIR_URL . 'admin/assets/image/integrations/icon-redis.png' ); ?>"
 					srcset="<?php echo esc_url( WPHB_DIR_URL . 'admin/assets/image/integrations/icon-redis.png' ); ?> 1x, <?php echo esc_url( WPHB_DIR_URL . 'admin/assets/image/integrations/icon-redis@2x.png' ); ?> 2x">
-				<?php
-				esc_html_e( 'Redis', 'wphb' );
-				if ( $disable_redis ) {
-					?>
-					<button class="sui-button-icon sui-tooltip sui-tooltip-constrained"
-							data-tooltip="<?php esc_html_e( 'Redis cache is disabled for your website because object caching is already enabled on your server.', 'wphb' ); ?>">
-						<i class="sui-icon-info" aria-hidden="true"></i>
-					</button>
-					<?php
-				}
-				?>
+				<?php esc_html_e( 'Redis', 'wphb' ); ?>
+				<?php if ( $disable_redis ) : ?>
+					<span class="sui-tooltip sui-tooltip-constrained" data-tooltip="<?php esc_html_e( 'Redis cache is disabled for your website because object caching is already enabled on your server.', 'wphb' ); ?>">
+						<span class="sui-icon-info sui-sm" aria-hidden="true"></span>
+					</span>
+				<?php endif; ?>
 			</div>
 			<?php
 			if ( ! $disable_redis ) :
@@ -61,10 +56,10 @@ $title_class = $disable_redis ? ' justify-content-start' : '';
 						data-modal-open-focus="redis-host"
 						data-modal-close-focus="wphb-box-integrations"
 						data-modal-mask="true"
-					><i class="sui-icon-plus" aria-hidden="true"></i></button>
+					><span class="sui-icon-plus" aria-hidden="true"></span></button>
 				<?php endif; ?>
 				<button class="sui-button-icon sui-accordion-open-indicator" aria-label="<?php esc_attr_e( 'Open item', 'wphb' ); ?>">
-					<i class="sui-icon-chevron-down" aria-hidden="true"></i>
+					<span class="sui-icon-chevron-down" aria-hidden="true"></span>
 				</button>
 				</div>
 				<?php
@@ -86,13 +81,11 @@ $title_class = $disable_redis ? ' justify-content-start' : '';
 					<h4><?php esc_html_e( 'Status', 'wphb' ); ?></h4>
 
 					<?php if ( $redis_connected ) : ?>
-						<div class="sui-notice sui-notice-success">
-							<p><?php esc_html_e( 'Redis is connected.', 'wphb' ); ?></p>
-						</div>
+						<?php $this->admin_notices->show_inline( esc_html__( 'Redis is connected.', 'wphb' ) ); ?>
 
 						<h4><?php esc_html_e( 'Object Cache', 'wphb' ); ?></h4>
 						<p>
-							<?php esc_html_e( 'Object cache keeps the database query results and provides the cached version without requesting it every time. We recommend using object cache if your site gets a lot of traffic and you have a lot of data across the pages.', 'wphb' ); ?>
+							<?php esc_html_e( 'Object cache keeps the database query results and provides the cached version without requesting it every time. We recommend using object cache if your site gets a lot of traffic and you have a lot of data across your pages.', 'wphb' ); ?>
 						</p>
 
 						<div class="sui-form-field">
@@ -105,16 +98,13 @@ $title_class = $disable_redis ? ' justify-content-start' : '';
 							</label>
 						</div>
 					<?php else : ?>
-						<div class="sui-notice">
-							<p><?php esc_html_e( 'Redis is not connected.', 'wphb' ); ?></p>
-							<?php
-							if ( ! empty( $error ) ) {
-								?>
-								<p><?php echo esc_attr( $error ); ?></p>
-								<?php
-							}
-							?>
-						</div>
+						<?php
+						$this->admin_notices->show_inline(
+							esc_html__( 'Redis is not connected.', 'wphb' ),
+							'grey',
+							$error
+						);
+						?>
 					<?php endif; ?>
 				</div>
 				<div class="sui-box-footer">
@@ -132,7 +122,7 @@ $title_class = $disable_redis ? ' justify-content-start' : '';
 									data-modal-close-focus="wphb-box-integrations"
 									data-modal-mask="true"
 							>
-								<i class="sui-icon-wrench-tool" aria-hidden="true"></i>
+								<span class="sui-icon-wrench-tool" aria-hidden="true"></span>
 								<?php esc_html_e( 'Configure', 'wphb' ); ?>
 							</button>
 						</div>
@@ -147,7 +137,7 @@ $title_class = $disable_redis ? ' justify-content-start' : '';
 								</span>
 								<!-- Loading State Content -->
 								<span class="sui-button-text-onload">
-									<i class="sui-icon-loader sui-loading" aria-hidden="true"></i>
+									<span class="sui-icon-loader sui-loading" aria-hidden="true"></span>
 									<?php esc_html_e( 'Clear Cache', 'wphb' ); ?>
 								</span>
 							</button>

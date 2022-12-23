@@ -20,23 +20,32 @@ function Fetcher() {
 
 	/**
 	 * Request ajax with a promise.
+	 * Use FormData Object as data if you need to upload file
 	 *
 	 * @param {string} action
-	 * @param {Object} data
+	 * @param {Object} or {FormData Object} data
 	 * @param {string} method
 	 * @return {Promise<any>} Request results.
 	 */
 	function request( action, data = {}, method = 'GET' ) {
-		data.nonce = fetchNonce;
-		data.action = action;
-		const args = { data, method };
-		args.url = fetchUrl;
+		const args = {
+			url 	: fetchUrl,
+			method 	: method,
+			cache 	: false
+		};
+		if( data instanceof FormData ) {
+			data.append( 'nonce', fetchNonce );
+			data.append( 'action', action );
+			args.contentType = false;
+			args.processData = false;
+		} else {
+			data.nonce 	= fetchNonce;
+			data.action = action;
+		}
+		args.data = data;
 		const Promise = require( 'es6-promise' ).Promise;
 		return new Promise( ( resolve, reject ) => {
-			jQuery
-				.ajax( args )
-				.done( resolve )
-				.fail( reject );
+			jQuery.ajax( args ).done( resolve ).fail( reject );
 		} ).then( ( response ) => checkStatus( response ) );
 	}
 
@@ -143,11 +152,12 @@ function Fetcher() {
 			 * @param {string} host
 			 * @param {number} port
 			 * @param {string} password
+			 * @param {number} db
 			 */
-			redisSaveSettings( host, port, password ) {
+			redisSaveSettings( host, port, password, db ) {
 				return request(
 					actionPrefix + 'redis_save_settings',
-					{ host, port, password },
+					{ host, port, password, db },
 					'POST'
 				);
 			},
@@ -163,6 +173,22 @@ function Fetcher() {
 				return request(
 					actionPrefix + 'redis_toggle_object_cache',
 					{ value },
+					'POST'
+				);
+			},
+
+			/**
+			 * Clear out page cache for a batch of subsites in a network.
+			 *
+			 * @since 2.7.0
+			 *
+			 * @param {number} sites
+			 * @param {number} offset
+			 */
+			clearCacheBatch( sites, offset ) {
+				return request(
+					actionPrefix + 'clear_network_cache',
+					{ sites, offset },
 					'POST'
 				);
 			},
@@ -230,11 +256,12 @@ function Fetcher() {
 			/**
 			 * Toggle minification advanced mode.
 			 *
-			 * @param {string} value
+			 * @param {string}  value
+			 * @param {boolean} hide
 			 */
-			toggleView: ( value ) => {
+			toggleView: ( value, hide ) => {
 				const action = actionPrefix + 'minification_toggle_view';
-				return request( action, { value }, 'POST' );
+				return request( action, { value, hide }, 'POST' );
 			},
 
 			/**
@@ -385,6 +412,21 @@ function Fetcher() {
 					}
 				);
 			},
+
+			/**
+			 * Clear out a batch of orphaned asset optimization data.
+			 *
+			 * @since 2.7.0
+			 *
+			 * @param {number} rows
+			 */
+			clearOrphanedBatch( rows ) {
+				return request(
+					actionPrefix + 'advanced_purge_orphaned',
+					{ rows },
+					'POST'
+				);
+			},
 		},
 
 		/**
@@ -404,6 +446,30 @@ function Fetcher() {
 					}
 				);
 			},
+
+			/**
+			 * Upload settings import file from HB admin settings.
+			 *
+			 * @param {FormData Object} form_data
+			 */
+			importSettings: ( form_data ) => {
+				const action = actionPrefix + 'admin_settings_import_settings';
+				return request( action, form_data, 'POST' ).then(
+					( response ) => {
+						return response;
+					}
+				);
+			},
+
+			/**
+			 * Export settings from HB admin settings.
+			 */
+			exprotSettings: () => {
+				const action = actionPrefix + 'admin_settings_export_settings';
+				const url = fetchUrl + '?action=' + action + '&nonce=' + fetchNonce;
+			 	window.location = url;
+			}
+
 		},
 
 		/**
@@ -499,6 +565,22 @@ function Fetcher() {
 				return request( endpoint, {}, 'POST' ).then( ( response ) => {
 					return response;
 				} );
+			},
+
+			/**
+			 * Clear selected module cache.
+			 *
+			 * @since 2.7.1
+			 *
+			 * @param {Array} modules  List of modules to clear cache for.
+			 */
+			clearCaches: ( modules ) => {
+				const action = actionPrefix + 'clear_caches';
+				return request( action, { modules }, 'POST' ).then(
+					( response ) => {
+						return response;
+					}
+				);
 			},
 		},
 

@@ -8,6 +8,7 @@
 namespace Hummingbird\Admin;
 
 use Hummingbird\Core\Filesystem;
+use Hummingbird\Core\Integration\Opcache;
 use Hummingbird\Core\Module_Server;
 use Hummingbird\Core\Modules\Caching\Preload;
 use Hummingbird\Core\Modules\Minify;
@@ -36,10 +37,29 @@ class AJAX {
 			return;
 		}
 
+		// React. Hide tutorials.
+		add_action( 'wp_ajax_wphb_react_hide_tutorials', array( $this, 'hide_tutorials' ) );
+
 		// Parse clear cache click from frontend admin bar.
 		add_action( 'wp_ajax_wphb_front_clear_cache', array( $this, 'clear_frontend_cache' ) );
 		// Parse clear full cache from admin notice.
 		add_action( 'wp_ajax_wphb_global_clear_cache', array( $this, 'clear_global_cache' ) );
+		// Clear selected module cache.
+		add_action( 'wp_ajax_wphb_clear_caches', array( $this, 'clear_modules_cache' ) );
+		// Clear Cloudflare cache from admin bar.
+		add_action( 'wp_ajax_wphb_front_clear_cloudflare', array( $this, 'clear_frontend_cloudflare' ) );
+
+		/**
+		 * Multisite global cache clear.
+		 *
+		 * @since 2.7.0
+		 */
+		if ( is_multisite() ) {
+			// Get the total number of sites in a network.
+			add_action( 'wp_ajax_wphb_get_network_sites', array( $this, 'get_network_sites' ) );
+			// Clear cache on network subsites.
+			add_action( 'wp_ajax_wphb_clear_network_cache', array( $this, 'clear_network_cache' ) );
+		}
 
 		/**
 		 * DASHBOARD AJAX ACTIONS
@@ -51,6 +71,8 @@ class AJAX {
 		add_action( 'wp_ajax_wphb_notice_dismiss', array( $this, 'notice_dismiss' ) );
 		// Dismiss notice.
 		add_action( 'wp_ajax_wphb_cf_notice_dismiss', array( $this, 'cf_notice_dismiss' ) );
+		// Hide upgrade summary.
+		add_action( 'wp_ajax_wphb_hide_upgrade_summary', array( $this, 'hide_upgrade_summary' ) );
 
 		/**
 		 * PERFORMANCE TEST AJAX ACTIONS
@@ -147,10 +169,13 @@ class AJAX {
 		add_action( 'wp_ajax_wphb_minification_reset_asset', array( $this, 'minification_reset_asset' ) );
 		// Update settings in network admin.
 		add_action( 'wp_ajax_wphb_minification_update_network_settings', array( $this, 'minification_update_network_settings' ) );
-		// Skip tour.
-		add_action( 'wp_ajax_wphb_minification_skip_tour', array( $this, 'minification_skip_tour' ) );
 		// Save settings.
 		add_action( 'wp_ajax_wphb_minification_save_exclude_list', array( $this, 'minification_save_exclude_list' ) );
+
+		// Skip AO upgrade.
+		add_action( 'wp_ajax_wphb_ao_skip_upgrade', array( $this, 'minification_skip_upgrade' ) );
+		// Perform AO upgrade.
+		add_action( 'wp_ajax_wphb_ao_do_upgrade', array( $this, 'minification_do_upgrade' ) );
 
 		/**
 		 * ADVANCED TOOLS AJAX ACTIONS
@@ -160,6 +185,12 @@ class AJAX {
 		add_action( 'wp_ajax_wphb_advanced_db_delete_data', array( $this, 'advanced_db_delete_data' ) );
 		// Save settings in advanced tools module.
 		add_action( 'wp_ajax_wphb_advanced_save_settings', array( $this, 'advanced_save_settings' ) );
+		// Purge cache preloader.
+		add_action( 'wp_ajax_wphb_advanced_purge_cache', array( $this, 'advanced_purge_cache' ) );
+		// Purge asset optimization groups.
+		add_action( 'wp_ajax_wphb_advanced_purge_minify', array( $this, 'advanced_purge_minify' ) );
+		// Purge asset optimization orphaned data.
+		add_action( 'wp_ajax_wphb_advanced_purge_orphaned', array( $this, 'advanced_purge_orphaned' ) );
 
 		/**
 		 * LOGGER MODULE AJAX ACTIONS
@@ -176,6 +207,10 @@ class AJAX {
 		add_action( 'wp_ajax_wphb_reset_settings', array( $this, 'reset_settings' ) );
 		// Toggle tracking.
 		add_action( 'wp_ajax_wphb_toggle_tracking', array( $this, 'toggle_tracking' ) );
+		// Export settings.
+		add_action( 'wp_ajax_wphb_admin_settings_export_settings', array( $this, 'admin_settings_export_settings' ) );
+		// Import settings.
+		add_action( 'wp_ajax_wphb_admin_settings_import_settings', array( $this, 'admin_settings_import_settings' ) );
 	}
 
 	/**
@@ -219,6 +254,167 @@ class AJAX {
 		// Remove notice.
 		delete_option( 'wphb-notice-cache-cleaned-show' );
 
+		wp_send_json_success();
+	}
+
+	/**
+	 * Clear cache from selected modules.
+	 *
+	 * @since 2.7.1
+	 */
+	public function clear_modules_cache() {
+		check_ajax_referer( 'wphb-fetch', 'nonce' );
+
+		$modules = filter_input( INPUT_POST, 'modules', FILTER_DEFAULT, FILTER_REQUIRE_ARRAY );
+
+		if ( ! $modules ) {
+			wp_send_json_success();
+		}
+
+		// Do not clear Varnish cache.
+		if ( ! in_array( 'varnish', $modules, true ) ) {
+			remove_action( 'wphb_clear_cache_url', array( Utils::get_module( 'page_cache' ), 'clear_external_cache' ) );
+		} else {
+			$key = array_search( 'varnish', $modules, true );
+			unset( $modules[ $key ] );
+
+			// Page cache is disabled in modules... Oh well, force manual purge.
+			if ( ! in_array( 'page_cache', $modules, true ) ) {
+				Utils::get_api()->varnish->purge_cache( '' );
+			}
+		}
+
+		// Do not clear Opcache.
+		if ( ! in_array( 'opcache', $modules, true ) ) {
+			remove_action( 'wphb_clear_cache_url', array( \Hummingbird\Core\Integration\Opcache::get_instance(), 'purge_cache' ) );
+		} else {
+			$key = array_search( 'opcache', $modules, true );
+			unset( $modules[ $key ] );
+
+			// Page cache is disabled in modules... Oh well, force manual purge.
+			if ( ! in_array( 'page_cache', $modules, true ) ) {
+				Opcache::get_instance()->purge_cache( '' );
+			}
+		}
+
+		foreach ( $modules as $module ) {
+			$mod = Utils::get_module( $module );
+
+			if ( false === $modules ) {
+				continue;
+			}
+
+			if ( ! $mod->is_active() ) {
+				continue;
+			}
+
+			if ( 'minify' === $module ) {
+				$mod->clear_files();
+			} else {
+				$mod->clear_cache();
+			}
+		}
+
+		wp_send_json_success(
+			array(
+				'message' => __( 'Cache purged.', 'wphb' ),
+			)
+		);
+	}
+
+	/**
+	 * Clear Cloudflare cache from admin bar.
+	 *
+	 * @since 2.7.2
+	 */
+	public function clear_frontend_cloudflare() {
+		$status = Utils::get_module( 'cloudflare' )->clear_cache();
+
+		if ( ! $status ) {
+			wp_send_json_error();
+		}
+
+		wp_send_json_success();
+	}
+
+	/**
+	 * Hide tutorials on dashboard page.
+	 *
+	 * @since 2.7.3
+	 */
+	public function hide_tutorials() {
+		check_ajax_referer( 'wphb-fetch' );
+
+		update_option( 'wphb-hide-tutorials', true, false );
+
+		wp_send_json_success();
+	}
+
+	/**
+	 * Get the number of subsites in a network.
+	 *
+	 * @since 2.7.0
+	 */
+	public function get_network_sites() {
+		check_ajax_referer( 'wphb-fetch', 'nonce' );
+
+		global $wpdb;
+
+		$count = wp_cache_get( 'wphb_network_subsites' );
+
+		if ( false === $count ) {
+			$count = $wpdb->get_var( "SELECT COUNT( blog_id ) FROM {$wpdb->blogs}" ); // Db call ok.
+		}
+
+		wp_cache_set( 'wphb_network_subsites', $count );
+
+		wp_send_json_success( $count );
+	}
+
+	/**
+	 * Clear a batch of network subsite caches.
+	 *
+	 * @since 2.7.0
+	 */
+	public function clear_network_cache() {
+		check_ajax_referer( 'wphb-fetch', 'nonce' );
+
+		// Note: we can not use Utils::get_admin_capability() because is_network_admin() does not work in ajax request.
+		if ( ! current_user_can( 'manage_network' ) ) {
+			die();
+		}
+
+		$sites  = filter_input( INPUT_POST, 'sites', FILTER_SANITIZE_NUMBER_INT );
+		$offset = filter_input( INPUT_POST, 'offset', FILTER_SANITIZE_NUMBER_INT );
+
+		$args = array(
+			'number' => (int) $sites,
+			'offset' => (int) $offset,
+		);
+
+		$sites = get_sites( $args );
+
+		// This is quick hack to force the page cache module to not clear only main site cache.
+		$http_host_backup = '';
+		if ( isset( $_SERVER['HTTP_HOST'] ) ) {
+			$http_host_backup     = wp_unslash( $_SERVER['HTTP_HOST'] );
+			$_SERVER['HTTP_HOST'] = '';
+		}
+
+		foreach ( $sites as $site ) {
+			switch_to_blog( $site->blog_id );
+			Utils::get_module( 'page_cache' )->clear_cache( $site->domain . $site->path );
+		}
+
+		// Revert the HTTP_HOST value back.
+		if ( ! empty( $http_host_backup ) ) {
+			$_SERVER['HTTP_HOST'] = $http_host_backup;
+		}
+
+		// Reset cached pages count.
+		Settings::update_setting( 'pages_cached', 0, 'page_cache' );
+
+		restore_current_blog();
 		wp_send_json_success();
 	}
 
@@ -486,6 +682,8 @@ class AJAX {
 				$string             = str_replace( '\\', '', $string );
 				$string             = str_replace( '/', '\/', $string );
 				$string             = preg_replace( '/.php$/', '\\.php', $string );
+				$string             = preg_replace( '/.xml$/', '\\.xml', $string );
+				$string             = preg_replace( '/.yml$/', '\\.yml', $string );
 				$url_strings[ $id ] = $string;
 			}
 		}
@@ -582,7 +780,7 @@ class AJAX {
 		}
 
 		$preloader = new Preload();
-		$preloader->cancel();
+		$preloader->cancel_process();
 		wp_send_json_success();
 	}
 
@@ -626,9 +824,20 @@ class AJAX {
 		}
 
 		$module = Utils::get_module( 'caching' );
-		$module->get_analysis_data( true, true );
 
-		$expiry_values = array_map( array( 'Hummingbird\\Core\\Utils', 'human_read_time_diff' ), $module->status );
+		$cf_module = Utils::get_module( 'cloudflare' );
+		// See if we have Cloudflare connected.
+		if ( $cf_module->is_connected() && $cf_module->is_zone_selected() ) {
+			$expiration = $cf_module->get_caching_expiration();
+			// Fill the report with values from Cloudflare.
+			$values = array_fill_keys( array_keys( $module->get_types() ), $expiration );
+		} else {
+			// If not - try to get values from header analysis.
+			$module->get_analysis_data( true, true );
+			$values = $module->status;
+		}
+
+		$expiry_values = array_map( array( 'Hummingbird\\Core\\Utils', 'human_read_time_diff' ), $values );
 
 		wp_send_json_success(
 			array(
@@ -912,7 +1121,7 @@ class AJAX {
 				$cf_data['plan']     = $options['plan'];
 
 				// And set the new CF setting.
-				$cloudflare->set_caching_expiration( 691200 );
+				$cloudflare->set_caching_expiration( YEAR_IN_SECONDS );
 
 				$redirect = Utils::get_admin_menu_url( 'caching' );
 				wp_send_json_success(
@@ -963,8 +1172,7 @@ class AJAX {
 			die();
 		}
 
-		$cf = Utils::get_module( 'cloudflare' );
-		$cf->clear_cache();
+		Utils::get_module( 'cloudflare' )->clear_cache();
 
 		wp_send_json_success();
 	}
@@ -1041,7 +1249,7 @@ class AJAX {
 		$pc_module = Utils::get_module( 'page_cache' );
 		$options   = $pc_module->get_options();
 
-		$options['control']   = ( isset( $data['cc_button'] ) && 'on' === $data['cc_button'] ) ? true : false;
+		$options['control']   = isset( $data['cc_button'] ) && 'on' === $data['cc_button'];
 		$options['detection'] = isset( $data['detection'] ) ? sanitize_text_field( $data['detection'] ) : 'manual';
 
 		// Remove notice if File Change Detection is set to 'auto' or 'none'.
@@ -1069,15 +1277,16 @@ class AJAX {
 			die();
 		}
 
-		$host = filter_input( INPUT_POST, 'host', FILTER_VALIDATE_IP );
-		$post = filter_input( INPUT_POST, 'port', FILTER_VALIDATE_INT );
+		$host = filter_input( INPUT_POST, 'host', FILTER_SANITIZE_STRING );
+		$port = filter_input( INPUT_POST, 'port', FILTER_VALIDATE_INT );
 		$pass = filter_input( INPUT_POST, 'password', FILTER_SANITIZE_STRING );
+		$db   = filter_input( INPUT_POST, 'db', FILTER_VALIDATE_INT );
 
 		$redis_mod = Utils::get_module( 'redis' );
-		$result    = $redis_mod->test_redis_connection( $host, $post, $pass );
+		$result    = $redis_mod->test_redis_connection( $host, $port, $pass, $db );
 
 		if ( 'success' === $result['status'] ) {
-			$redis_mod->enable( $host, $post, $pass );
+			$redis_mod->enable( $host, $port, $pass, $db );
 			wp_send_json_success(
 				array(
 					'success' => true,
@@ -1087,8 +1296,7 @@ class AJAX {
 			wp_send_json_success(
 				array(
 					'success' => false,
-					/* translators: %s - error message */
-					'message' => sprintf( __( 'Redis connection error : %s', 'wphb' ), $result['error'] ),
+					'message' => apply_filters( 'wp_hummingbird_redis_error', $result['error'] ),
 				)
 			);
 		}
@@ -1217,8 +1425,16 @@ class AJAX {
 
 		Settings::update_setting( 'view', $type, 'minify' );
 
+		// Hide the modal.
+		$hide = filter_input( INPUT_POST, 'hide', FILTER_VALIDATE_BOOLEAN );
+
 		if ( 'basic' === $type ) {
 			Utils::get_module( 'minify' )->clear_cache( true, false, true );
+			if ( true === $hide ) {
+				delete_option( 'wphb-minification-show-config_modal' );
+			}
+		} elseif ( true === $hide ) {
+			delete_option( 'wphb-minification-show-advanced_modal' );
 		}
 
 		wp_send_json_success();
@@ -1326,10 +1542,9 @@ class AJAX {
 
 		$path = sanitize_text_field( wp_unslash( $_POST['value'] ) ); // Input var ok.
 
-		// Get current setting value.
-		$current_path = Settings::get_setting( 'file_path', 'minify' );
-
 		Utils::get_module( 'minify' )->clear_cache( false );
+
+		$current_path = Filesystem::instance()->resolve_minify_asset_path();
 
 		if ( isset( $current_path ) && ! empty( $current_path ) ) {
 			Filesystem::instance()->purge( $current_path, true );
@@ -1341,6 +1556,7 @@ class AJAX {
 		wp_send_json_success(
 			array(
 				'success' => true,
+				'message' => '',
 			)
 		);
 	}
@@ -1430,25 +1646,6 @@ class AJAX {
 	}
 
 	/**
-	 * Skip tour.
-	 *
-	 * @since 2.1.0
-	 */
-	public function minification_skip_tour() {
-		check_ajax_referer( 'wphb-fetch', 'nonce' );
-
-		if ( ! current_user_can( Utils::get_admin_capability() ) ) {
-			die();
-		}
-
-		$tour = Settings::get( 'wphb-new-user-tour' );
-
-		$tour['finished'] = true;
-
-		Settings::update( 'wphb-new-user-tour', $tour );
-	}
-
-	/**
 	 * Update the CDN exclude list
 	 *
 	 * @since 2.4.0
@@ -1466,6 +1663,47 @@ class AJAX {
 		Settings::update_setting( 'nocdn', $assets, 'minify' );
 		// This will require a clear cache call.
 		Utils::get_module( 'minify' )->clear_cache( false );
+
+		wp_send_json_success();
+	}
+
+	/**
+	 * Skip Asset Optimization upgrade.
+	 *
+	 * @since 2.6.0
+	 */
+	public function minification_skip_upgrade() {
+		check_ajax_referer( 'wphb-fetch', 'nonce' );
+
+		if ( ! current_user_can( Utils::get_admin_capability() ) ) {
+			die();
+		}
+
+		// Switch to advanced mode.
+		Settings::update_setting( 'view', 'advanced', 'minify' );
+		// Remove the upgrade modal.
+		delete_option( 'wphb_do_minification_upgrade' );
+
+		wp_send_json_success();
+	}
+
+	/**
+	 * Perform Asset Optimization upgrade.
+	 *
+	 * @since 2.6.0
+	 */
+	public function minification_do_upgrade() {
+		check_ajax_referer( 'wphb-fetch', 'nonce' );
+
+		if ( ! current_user_can( Utils::get_admin_capability() ) ) {
+			die();
+		}
+
+		Settings::update_setting( 'view', 'basic', 'minify' );
+		Utils::get_module( 'minify' )->clear_cache( true, true, true );
+
+		// Remove the upgrade modal.
+		delete_option( 'wphb_do_minification_upgrade' );
 
 		wp_send_json_success();
 	}
@@ -1538,7 +1776,8 @@ class AJAX {
 
 		// General settings tab.
 		if ( 'advanced-general-settings' === $form ) {
-			$options['query_string'] = ( isset( $data['query_strings'] ) && 'on' === $data['query_strings'] ) ? true : false;
+			$options['query_string']         = isset( $data['query_strings'] ) && 'on' === $data['query_strings'];
+			$options['query_strings_global'] = isset( $data['query_strings_global'] ) && 'on' === $data['query_strings_global'];
 
 			if ( isset( $data['cart_fragments'] ) && 'on' === $data['cart_fragments'] ) {
 				$options['cart_fragments'] = isset( $data['cart_fragments_value'] ) && '1' === $data['cart_fragments_value'] ? true : 'all';
@@ -1546,7 +1785,9 @@ class AJAX {
 				$options['cart_fragments'] = false;
 			}
 
-			$options['emoji']    = ( isset( $data['emojis'] ) && 'on' === $data['emojis'] ) ? true : false;
+			$options['emoji']        = isset( $data['emojis'] ) && 'on' === $data['emojis'];
+			$options['emoji_global'] = isset( $data['emojis_global'] ) && 'on' === $data['emojis_global'];
+
 			$options['prefetch'] = array();
 			if ( isset( $data['url_strings'] ) && ! empty( $data['url_strings'] ) ) {
 				$options['prefetch'] = preg_split( '/[\r\n\t ]+/', $data['url_strings'] );
@@ -1556,14 +1797,13 @@ class AJAX {
 		// Database cleanup settings tab.
 		if ( 'advanced-db-settings' === $form ) {
 			$tables = array(
-				'revisions'          => ( isset( $data['revisions'] ) && 'on' === $data['revisions'] ) ? true : false,
-				'drafts'             => ( isset( $data['drafts'] ) && 'on' === $data['drafts'] ) ? true : false,
-				'trash'              => ( isset( $data['trash'] ) && 'on' === $data['trash'] ) ? true : false,
-				'spam'               => ( isset( $data['spam'] ) && 'on' === $data['spam'] ) ? true : false,
-				'trash_comment'      => ( isset( $data['trash_comment'] ) && 'on' === $data['trash_comment'] ) ? true : false,
-				'expired_transients' => ( isset( $data['expired_transients'] ) && 'on' === $data['expired_transients'] ) ? true : false,
-				'transients'         => ( isset( $data['transients'] ) && 'on' === $data['transients'] ) ? true : false,
-
+				'revisions'          => isset( $data['revisions'] ) && 'on' === $data['revisions'],
+				'drafts'             => isset( $data['drafts'] ) && 'on' === $data['drafts'],
+				'trash'              => isset( $data['trash'] ) && 'on' === $data['trash'],
+				'spam'               => isset( $data['spam'] ) && 'on' === $data['spam'],
+				'trash_comment'      => isset( $data['trash_comment'] ) && 'on' === $data['trash_comment'],
+				'expired_transients' => isset( $data['expired_transients'] ) && 'on' === $data['expired_transients'],
+				'transients'         => isset( $data['transients'] ) && 'on' === $data['transients'],
 			);
 
 			$options['db_cleanups'] = false;
@@ -1578,18 +1818,72 @@ class AJAX {
 		// Lazy load tab.
 		if ( 'advanced-lazy-settings' === $form ) {
 			$options['lazy_load'] = array(
-				'enabled'   => ( isset( $data['lazy_load'] ) && 'on' === $data['lazy_load'] ) ? true : false,
+				'enabled'   => isset( $data['lazy_load'] ) && 'on' === $data['lazy_load'],
 				'method'    => isset( $data['method'] ) ? $data['method'] : 'click',
 				'button'    => isset( $data['button'] ) ? $data['button'] : '',
 				'threshold' => isset( $data['threshold'] ) ? $data['threshold'] : 0,
 			);
-
 		}
 
 		$adv_module->update_options( $options );
+		wp_send_json_success( array( 'success' => true ) );
+	}
+
+	/**
+	 * Purge page cache preloader.
+	 *
+	 * @since 2.7.0
+	 */
+	public function advanced_purge_cache() {
+		check_ajax_referer( 'wphb-fetch', 'nonce' );
+
+		if ( ! current_user_can( 'edit_posts' ) ) {
+			die();
+		}
+
+		$preloader = new Preload();
+		$preloader->clear_all_queue();
+
+		wp_send_json_success();
+	}
+
+	/**
+	 * Purge asset optimization groups.
+	 *
+	 * @since 2.7.0
+	 */
+	public function advanced_purge_minify() {
+		check_ajax_referer( 'wphb-fetch', 'nonce' );
+
+		if ( ! current_user_can( 'edit_posts' ) ) {
+			die();
+		}
+
+		Utils::get_module( 'minify' )->clear_files();
+
+		wp_send_json_success();
+	}
+
+	/**
+	 * Purge asset optimization orphaned data.
+	 *
+	 * @since 2.7.0
+	 */
+	public function advanced_purge_orphaned() {
+		check_ajax_referer( 'wphb-fetch', 'nonce' );
+
+		if ( ! current_user_can( 'edit_posts' ) ) {
+			die();
+		}
+
+		$rows = filter_input( INPUT_POST, 'rows', FILTER_SANITIZE_NUMBER_INT );
+
+		Utils::get_module( 'advanced' )->purge_orphaned_step( (int) $rows );
+
+		$load = sys_getloadavg();
 		wp_send_json_success(
 			array(
-				'success' => true,
+				'highCPU' => $load[0] > 0.5,
 			)
 		);
 	}
@@ -1709,5 +2003,121 @@ class AJAX {
 
 		wp_send_json_success();
 	}
+
+	/**
+	 * Deletes the flag to show upgrade summary.
+	 */
+	public function hide_upgrade_summary() {
+		delete_site_option( 'wphb_show_upgrade_summary' );
+		wp_send_json_success();
+	}
+
+	/**
+	 * Export settings.
+	 *
+	 * @since 2.6.0
+	 */
+	public function admin_settings_export_settings() {
+		check_ajax_referer( 'wphb-fetch', 'nonce' );
+
+		if ( ! current_user_can( Utils::get_admin_capability() ) ) {
+			die();
+		}
+
+		$data = array(
+			'version'         => WPHB_VERSION,
+			'plugins'         => get_option( 'active_plugins' ),
+			'network_plugins' => get_site_option( 'active_sitewide_plugins' ),
+			'theme'           => get_stylesheet(),
+			'settings'        => array(),
+		);
+
+		// Right now we are exporting only asset optimization settings.
+		$minify_options = Settings::get_settings( 'minify' );
+
+		$data['settings']['minify'] = $minify_options;
+
+		$file_name = 'hummingbird-asset-optimization-settings.json';
+		header( 'Content-Type: application/json; charset=' . get_option( 'blog_charset' ) );
+		header( 'Content-Disposition: attachment; filename=' . $file_name );
+		header( 'Cache-Control: no-cache, no-store, must-revalidate' ); // HTTP 1.1.
+		header( 'Pragma: no-cache' ); // HTTP 1.0.
+		header( 'Expires: 0' ); // Proxies.
+		echo wp_json_encode( $data, JSON_PRETTY_PRINT );
+		exit();
+	}
+
+	/**
+	 * Import settings.
+	 *
+	 * @since 2.6.0
+	 */
+	public function admin_settings_import_settings() {
+		check_ajax_referer( 'wphb-fetch', 'nonce' );
+
+		if ( ! current_user_can( Utils::get_admin_capability() ) ) {
+			die();
+		}
+
+		if ( ! isset( $_FILES['settings_json_file'] ) ) {
+			wp_send_json_error(
+				array(
+					'message' => __( 'Import failed - No settings file has been submitted.', 'wphb' ),
+				)
+			);
+		}
+
+		$file = $_FILES['settings_json_file'];
+		if ( ! isset( $file['error'] ) || is_array( $file['error'] ) ) {
+			wp_send_json_error(
+				array(
+					'message' => __( 'Import failed - Something went wrong on uploading settings file.', 'wphb' ),
+				)
+			);
+		}
+
+		if ( $file['size'] > 1000000 ) {
+			wp_send_json_error(
+				array(
+					'message' => __( 'Import failed - You selected wrong settings file.', 'wphb' ),
+				)
+			);
+		}
+
+		if ( 'application/json' !== $file['type'] ) {
+			wp_send_json_error(
+				array(
+					'message' => __( 'Import failed - You selected wrong settings file.', 'wphb' ),
+				)
+			);
+		}
+
+		$content = file_get_contents( $file['tmp_name'] );
+		if ( empty( $content ) ) {
+			wp_send_json_error(
+				array(
+					'message' => __( 'Import failed - Settings data is empty.', 'wphb' ),
+				)
+			);
+		}
+
+		$data = json_decode( $content, true );
+		if ( ! isset( $data['settings']['minify'] ) || ! is_array( $data['settings']['minify'] ) ) {
+			wp_send_json_error(
+				array(
+					'message' => __( 'Import failed - Asset optimization settings data not found.', 'wphb' ),
+				)
+			);
+		}
+		// Right now we are importing only asset optimization settings.
+		Settings::update_settings( $data['settings']['minify'], 'minify' );
+
+		wp_send_json_success(
+			array(
+				'message' => __( 'Settings imported and configured successfully.', 'wphb' ),
+			)
+		);
+	}
+
 
 }

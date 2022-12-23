@@ -1,7 +1,7 @@
 /*
  * UnderConstructionPage
  * Main backend CSS
- * (c) Web factory Ltd, 2015 - 2020
+ * (c) Web factory Ltd, 2015 - 2021
  */
 
 @import url("//fonts.googleapis.com/css?family=Roboto:900");
@@ -41,6 +41,7 @@
   padding: 1px 12px;
   background-color: #fafafa;
   display: inline-block;
+  max-width: 700px;
 }
 
 .settings_page_ucp .button:hover,
@@ -1026,7 +1027,7 @@ Any+Time is a trademark of Andrew M. Andrews III */
 
 .ucp-pro-feature p {
   margin: 10px 0 0 0;
-  text-align: justify;
+  text-align: left;
 }
 
 h3.ucp-pro-logo {
@@ -1062,6 +1063,7 @@ h3.ucp-pro-logo span {
 .ucp-upsell-dialog .ui-dialog-titlebar-close {
   color: #fff;
   height: 55px;
+  font-size: 0px;
 }
 .ucp-upsell-dialog .ui-dialog-titlebar-close:hover {
   color: #333;

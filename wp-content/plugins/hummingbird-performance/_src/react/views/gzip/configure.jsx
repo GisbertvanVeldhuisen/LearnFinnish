@@ -54,6 +54,14 @@ export default class GzipConfig extends React.Component {
 	 * @return {*} GzipConfig component.
 	 */
 	render() {
+		const fullyEnabled =
+			Object.entries( this.props.status ).filter( ( item ) => item[ 1 ] )
+				.length === 3;
+
+		if ( true === fullyEnabled ) {
+			return null;
+		}
+
 		// Remove Cloudflare from the server list.
 		const serverList = Object.entries(
 			this.props.data.servers_array
@@ -74,18 +82,14 @@ export default class GzipConfig extends React.Component {
 		const serverInstructions = (
 			<ServerInstructions
 				currentServer={ this.state.currentServer }
-				fullyEnabled={
-					Object.entries( this.props.status ).filter(
-						( item ) => item[ 1 ]
-					).length === 3
-				}
+				fullyEnabled={ fullyEnabled }
 				gzipStatus={ this.props.status }
 				htaccessError={ this.props.data.htaccess_error }
 				htaccessWritable={ this.props.data.htaccess_writable }
 				htaccessWritten={ this.props.data.htaccess_written }
 				serverSnippets={ this.props.data.snippets }
-				enableGzip={ this.props.enableGzip }
-				disableGzip={ this.props.disableGzip }
+				enable={ this.props.enableGzip }
+				disable={ this.props.disableGzip }
 				server={ this.props.data.server_name }
 			/>
 		);

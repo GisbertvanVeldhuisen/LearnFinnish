@@ -6,11 +6,11 @@
 # Elke wijziging aan deze richtlijnen tussen deze markeringen worden overschreven.
 <IfModule mod_rewrite.c>
 RewriteEngine On
-RewriteBase /argibe/
+RewriteBase /learnfinnish/
 RewriteRule ^index\.php$ - [L]
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
-RewriteRule . /argibe/index.php [L]
+RewriteRule . /learnfinnish/index.php [L]
 </IfModule>
 
 # END WordPress

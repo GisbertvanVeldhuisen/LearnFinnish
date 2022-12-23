@@ -105,7 +105,8 @@ class Uptime extends Page {
 			null,
 			'summary',
 			array(
-				'box_content_class' => 'sui-box sui-summary',
+				'box_class'         => 'sui-box sui-summary',
+				'box_content_class' => false,
 			)
 		);
 
@@ -256,7 +257,7 @@ class Uptime extends Page {
 		<label for="wphb-uptime-data-range" class="inline-label header-label sui-hidden-xs sui-hidden-sm">
 			<?php esc_html_e( 'Reporting period', 'wphb' ); ?>
 		</label>
-		<select name="wphb-uptime-data-range" class="uptime-data-range sui-select-sm" id="wphb-uptime-data-range">
+		<select name="wphb-uptime-data-range" class="uptime-data-range sui-select sui-select-sm" id="wphb-uptime-data-range" data-width="120px">
 			<?php
 			foreach ( $data_ranges as $range => $label ) :
 				$data_url = add_query_arg(
@@ -288,7 +289,7 @@ class Uptime extends Page {
 
 			$class = empty( $options['recipients'] ) || ! $options['enabled'] ? 'sui-icon-check-tick sui-success sui-hidden' : 'sui-icon-check-tick sui-success';
 			// Nothing to display if not enabled.
-			echo '<i class="' . esc_attr( $class ) . '" aria-hidden="true"></i>';
+			echo '<span class="' . esc_attr( $class ) . '" aria-hidden="true"></span>';
 		}
 	}
 
@@ -417,11 +418,9 @@ class Uptime extends Page {
 		$stats = $this->current_report;
 
 		if ( is_wp_error( $stats ) ) {
-			$error      = $stats->get_error_message();
-			$error_type = 'error';
+			$error = $stats->get_error_message();
 		} elseif ( isset( $_GET['error'] ) ) { // Input var ok.
-			$error      = urldecode( $_GET['message'] ); // Input var ok.
-			$error_type = 'error';
+			$error = urldecode( $_GET['message'] ); // Input var ok.
 		} else {
 			// This is used for testing to create the state where no data exists when uptime is first activated.
 			if ( defined( 'WPHB_UPTIME_REFRESH' ) ) {
@@ -445,10 +444,6 @@ class Uptime extends Page {
 			'support_url'         => Utils::get_link( 'support' ),
 			'downtime_chart_json' => $downtime_chart_json,
 		);
-
-		if ( ! empty( $error_type ) ) {
-			$args['error_type'] = $error_type;
-		}
 
 		$this->view( 'uptime/meta-box', $args );
 	}

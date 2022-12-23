@@ -1,0 +1,42 @@
+html {
+  .section-usp-bar {
+
+    .container {
+      padding: 0;
+    }
+
+    .usp-bar {
+      @include flexbox;
+      @include flex-wrap(wrap);
+      @include align-items(center);
+      @include justify-content(space-between);
+      color: white;
+      padding: 10px 0;
+
+
+      .usp {
+        margin: 0 10px;
+        @include media(small-tablet) {
+          width: 50%;
+          margin: 0;
+        }
+        @include media(phone) {
+          width: 100%;
+        }
+
+        &:nth-child(1) {
+          margin-left: 0;
+        }
+
+        &:nth-last-child(1) {
+          margin-right: 0;
+        }
+      }
+
+      img {
+        width: 16px;
+        height: 16px;
+      }
+    }
+  }
+}

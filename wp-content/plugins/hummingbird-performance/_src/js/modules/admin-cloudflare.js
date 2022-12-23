@@ -1,6 +1,10 @@
-import Fetcher from '../utils/fetcher';
+/* global wphb */
+/* global WPHB_Admin */
 
-( function( $ ) {
+import Fetcher from '../utils/fetcher';
+import { getString } from '../utils/helpers';
+
+( function ( $ ) {
 	WPHB_Admin.cloudflare = {
 		module: 'cloudflare',
 
@@ -35,18 +39,14 @@ import Fetcher from '../utils/fetcher';
 					spinner.removeClass( 'visible' );
 					button.removeClass( 'disabled' );
 
+					window.wphbBrowserCachingReactRefresh();
+
 					if ( 'undefined' !== typeof response && response.success ) {
-						WPHB_Admin.notices.show(
-							'wphb-ajax-update-notice',
-							true,
-							'success'
-						);
+						WPHB_Admin.notices.show();
 					} else {
 						WPHB_Admin.notices.show(
-							'wphb-ajax-update-notice',
-							true,
-							'error',
-							wphb.strings.errorSettingsUpdate
+							getString( 'errorSettingsUpdate' ),
+							'error'
 						);
 					}
 				} );

@@ -4,28 +4,28 @@
  * Internal dependencies
  */
 import Fetcher from '../utils/fetcher';
+import { getString } from '../utils/helpers';
+
+/**
+ * External dependencies
+ */
 const MixPanel = require( 'mixpanel-browser' );
 
-( function( $ ) {
+( function ( $ ) {
 	'use strict';
 
 	const WPHB_Admin = {
 		modules: [],
 		// Common functionality to all screens
 		init() {
-			// Dismiss notice via an ajax call.
-			const notice = document.querySelector(
-				'#wphb-dismissable > .sui-notice-dismiss'
-			);
-
-			if ( notice ) {
-				notice.addEventListener( 'click', () => {
-					const noticeId = notice.parentElement.getAttribute(
-						'data-id'
-					);
-					Fetcher.common.dismissNotice( noticeId );
-				} );
-			}
+			/**
+			 * Handles the tab navigation on mobile.
+			 *
+			 * @since 2.7.2
+			 */
+			$( '.sui-mobile-nav' ).on( 'change', ( e ) => {
+				window.location.href = e.target.value;
+			} );
 
 			/**
 			 * Clear log button clicked.
@@ -35,7 +35,7 @@ const MixPanel = require( 'mixpanel-browser' );
 			$( '.wphb-logging-buttons' ).on(
 				'click',
 				'.wphb-logs-clear',
-				function( e ) {
+				function ( e ) {
 					e.preventDefault();
 
 					Fetcher.common
@@ -46,18 +46,11 @@ const MixPanel = require( 'mixpanel-browser' );
 							}
 
 							if ( response.success ) {
-								WPHB_Admin.notices.show(
-									'wphb-ajax-update-notice',
-									true,
-									'success',
-									response.message
-								);
+								WPHB_Admin.notices.show( response.message );
 							} else {
 								WPHB_Admin.notices.show(
-									'wphb-ajax-update-notice',
-									true,
-									'error',
-									response.message
+									response.message,
+									'error'
 								);
 							}
 						} );
@@ -71,7 +64,7 @@ const MixPanel = require( 'mixpanel-browser' );
 			 *
 			 * @since 1.9.3  Unified two handle both modules.
 			 */
-			$( '#add-recipient' ).on( 'click', function() {
+			$( '#add-recipient' ).on( 'click', function () {
 				const self = $( this );
 				self.attr( 'disabled', 'disabled' );
 
@@ -105,8 +98,8 @@ const MixPanel = require( 'mixpanel-browser' );
 						if ( 'notifications' === setting ) {
 							userRow.append(
 								'<span class="sui-recipient-status sui-tooltip" data-tooltip="' +
-									wphb.strings.awaitingConfirmation +
-									'"><i class="sui-icon-clock" aria-hidden="true"></i></span>'
+									getString( 'awaitingConfirmation' ) +
+									'"><span class="sui-icon-clock" aria-hidden="true"></span></span>'
 							);
 						}
 
@@ -128,11 +121,12 @@ const MixPanel = require( 'mixpanel-browser' );
 										class:
 											'sui-button-icon wphb-resend-recipient sui-tooltip',
 										type: 'button',
-										'data-tooltip':
-											wphb.strings.resendEmail,
+										'data-tooltip': getString(
+											'resendEmail'
+										),
 									} )
 									.html(
-										'<i class="sui-icon-send" aria-hidden="true"></i>'
+										'<span class="sui-icon-send" aria-hidden="true"></span>'
 									)
 							);
 						}
@@ -145,7 +139,7 @@ const MixPanel = require( 'mixpanel-browser' );
 									type: 'button',
 								} )
 								.html(
-									'<i class="sui-icon-trash" aria-hidden="true"></i>'
+									'<span class="sui-icon-trash" aria-hidden="true"></span>'
 								)
 						);
 
@@ -173,16 +167,14 @@ const MixPanel = require( 'mixpanel-browser' );
 						$( '.sui-notice-top.sui-notice-success' ).hide();
 
 						// Hide the last notice.
-						$( '#wphb-pending-sub-notice' ).hide();
+						$( '.wphb-pending-sub-notice' ).hide();
 						// Show confirm recipients notice.
-						$( '#wphb-confirm-sub-notice' ).show();
+						$( '.wphb-confirm-sub-notice' ).show();
 
 						// Show notice to save settings.
 						WPHB_Admin.notices.show(
-							'wphb-ajax-update-notice',
-							false,
-							'info',
-							name + wphb.strings.successRecipientAdded
+							name + getString( 'successRecipientAdded' ),
+							'info'
 						);
 						self.removeAttr( 'disabled' );
 					} )
@@ -204,14 +196,12 @@ const MixPanel = require( 'mixpanel-browser' );
 			 * Save report settings clicked (performance reports, uptime
 			 * reports and uptime notifications).
 			 */
-			body.on( 'submit', '.wphb-report-settings', function( e ) {
+			body.on( 'submit', '.wphb-report-settings', function ( e ) {
 				e.preventDefault();
 
-				$( '#wphb-confirm-sub-notice' ).slideUp();
+				$( '.wphb-confirm-sub-notice' ).slideUp();
 
-				$( this )
-					.find( '.button' )
-					.attr( 'disabled', 'disabled' );
+				$( this ).find( '.button' ).attr( 'disabled', 'disabled' );
 
 				Fetcher.common
 					.saveReportsSettings(
@@ -246,7 +236,7 @@ const MixPanel = require( 'mixpanel-browser' );
 										'.sui-box-body > .sui-notice-success:first-of-type > p'
 									).text( response.recipientNotice );
 									$(
-										'.sui-vertical-tab.current i[class^="sui-icon"]'
+										'.sui-vertical-tab.current span[class^="sui-icon"]'
 									).removeClass( 'sui-hidden' );
 								} else {
 									$(
@@ -258,31 +248,26 @@ const MixPanel = require( 'mixpanel-browser' );
 										'.sui-box-body > .sui-notice-default:first-of-type > p'
 									).text( response.recipientNotice );
 									$(
-										'.sui-vertical-tab.current i[class^="sui-icon"]'
+										'.sui-vertical-tab.current span[class^="sui-icon"]'
 									).addClass( 'sui-hidden' );
 								}
 
 								WPHB_Admin.notices.show(
-									'wphb-ajax-update-notice',
-									true,
-									'success',
 									response.enabled
-										? wphb.strings.confirmRecipient
+										? getString( 'confirmRecipient' )
 										: response.notice
 								);
 							} else {
 								window.location.search += '&updated=true';
 							}
 
-							$( '#wphb-pending-sub-notice' ).toggle(
+							$( '.wphb-pending-sub-notice' ).toggle(
 								response.recipientPending
 							);
 						} else {
 							WPHB_Admin.notices.show(
-								'wphb-ajax-update-notice',
-								true,
-								'error',
-								wphb.strings.errorSettingsUpdate
+								getString( 'errorSettingsUpdate' ),
+								'error'
 							);
 						}
 					} );
@@ -291,20 +276,16 @@ const MixPanel = require( 'mixpanel-browser' );
 			/**
 			 * Remove recipient button clicked.
 			 */
-			body.on( 'click', '.wphb-remove-recipient', function() {
-				$( this )
-					.closest( '.sui-recipient' )
-					.remove();
+			body.on( 'click', '.wphb-remove-recipient', function () {
+				$( this ).closest( '.sui-recipient' ).remove();
 
 				const id = $( this ).attr( 'data-id' );
 				const row = 'input[id="report-recipient"][value=' + id + ']';
 
-				$( '.wphb-report-settings' )
-					.find( row )
-					.remove();
+				$( '.wphb-report-settings' ).find( row ).remove();
 
 				if ( 0 === $( '.sui-recipient' ).length ) {
-					$( '#wphb-pending-sub-notice' ).slideUp();
+					$( '.wphb-pending-sub-notice' ).slideUp();
 					$( '.wphb-no-recipients' ).slideDown();
 				}
 			} );
@@ -312,7 +293,7 @@ const MixPanel = require( 'mixpanel-browser' );
 			/**
 			 * Handle the show/hiding of the report schedule.
 			 */
-			$( '#chk1' ).on( 'click', function() {
+			$( '#chk1' ).on( 'click', function () {
 				$( '.schedule-box' ).toggleClass( 'sui-hidden' );
 
 				$(
@@ -325,7 +306,7 @@ const MixPanel = require( 'mixpanel-browser' );
 			 * Schedule show/hide day of week.
 			 */
 			$( 'select[name="report-frequency"]' )
-				.change( function() {
+				.on( 'change', function () {
 					const freq = $( this ).val();
 
 					if ( '1' === freq ) {
@@ -360,7 +341,7 @@ const MixPanel = require( 'mixpanel-browser' );
 						}
 					}
 				} )
-				.change();
+				.trigger( 'change' );
 
 			/**
 			 * Track performance report scan init.
@@ -371,8 +352,12 @@ const MixPanel = require( 'mixpanel-browser' );
 				'click',
 				() => {
 					WPHB_Admin.Tracking.track( 'plugin_scan_started', {
-						score_mobile_previous: wphbPerformanceStrings.previousScoreMobile,
-						score_desktop_previous: wphbPerformanceStrings.previousScoreDesktop,
+						score_mobile_previous: getString(
+							'previousScoreMobile'
+						),
+						score_desktop_previous: getString(
+							'previousScoreDesktop'
+						),
 					} );
 				}
 			);
@@ -399,45 +384,85 @@ const MixPanel = require( 'mixpanel-browser' );
 	 * Admin notices.
 	 */
 	WPHB_Admin.notices = {
-		init() {},
+		init() {
+			const cfNotice = document.getElementById( 'dismiss-cf-notice' );
+			if ( cfNotice ) {
+				cfNotice.onclick = ( e ) => this.dismissCloudflareNotice( e );
+			}
+
+			const http2Notice = document.getElementById(
+				'wphb-floating-http2-info'
+			);
+			if ( http2Notice ) {
+				http2Notice.addEventListener( 'click', ( e ) => {
+					e.preventDefault();
+					Fetcher.common.dismissNotice( 'http2-info' );
+					$( '.wphb-box-notice' ).slideUp();
+				} );
+			}
+		},
+
 		/**
 		 * Show notice.
 		 *
 		 * @since 1.8
 		 *
-		 * @param {string}  id       ID of notice element.
-		 * @param {boolean} top      Scroll to top.
-		 * @param {string}  type     Error or success.
 		 * @param {string}  message  Message to display.
-		 *
-		 * @member {Array} wphb
+		 * @param {string}  type     Error or success.
+		 * @param {boolean} dismiss  Auto dismiss message.
 		 */
-		show(
-			id,
-			top = false,
-			type = '',
-			message = wphb.strings.successUpdate
-		) {
-			const notice = $( '#' + id );
-
-			if ( top ) {
-				window.scrollTo( 0, 0 );
+		show( message = '', type = 'success', dismiss = true ) {
+			if ( '' === message ) {
+				message = getString( 'successUpdate' );
 			}
 
-			if ( '' !== type ) {
-				// Remove set classes if doing multiple calls per page load.
-				notice.removeClass( 'sui-notice-error' );
-				notice.removeClass( 'sui-notice-success' );
-				notice.removeClass( 'sui-notice-info' );
-				notice.addClass( 'sui-notice-' + type );
+			const options = {
+				type,
+				dismiss: {
+					show: false,
+					label: getString( 'dismissLabel' ),
+					tooltip: getString( 'dismissLabel' ),
+				},
+				icon: 'info',
+			};
+
+			if ( ! dismiss ) {
+				options.dismiss.show = true;
 			}
 
-			notice.find( 'p' ).html( message );
+			window.SUI.openNotice(
+				'wphb-ajax-update-notice',
+				'<p>' + message + '</p>',
+				options
+			);
+		},
 
-			notice.slideDown();
-			setTimeout( function() {
-				notice.slideUp();
-			}, 5000 );
+		/**
+		 * Dismiss notice.
+		 *
+		 * @since 2.6.0  Refactored and moved from WPHB_Admin.init()
+		 *
+		 * @param {Object} el
+		 */
+		dismiss( el ) {
+			const noticeId = el.closest( '.sui-notice' ).getAttribute( 'id' );
+			Fetcher.common.dismissNotice( noticeId );
+			window.SUI.closeNotice( noticeId );
+		},
+
+		/**
+		 * Dismiss Cloudflare notice from Dashboard or Caching pages.
+		 *
+		 * @since 2.6.0  Refactored and moved from WPHB_Admin.dashboard.init() && WPHB_ADMIN.caching.init()
+		 *
+		 * @param {Object} e
+		 */
+		dismissCloudflareNotice( e ) {
+			e.preventDefault();
+			Fetcher.common.call( 'wphb_cf_notice_dismiss' );
+			const cloudFlareDashNotice = $( '.cf-dash-notice' );
+			cloudFlareDashNotice.slideUp();
+			cloudFlareDashNotice.parent().addClass( 'no-background-image' );
 		},
 	};
 

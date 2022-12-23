@@ -32,6 +32,10 @@ if ( $this->has_meta_boxes( 'box-caching' ) ) {
 		<form id="other-caching-settings" method="post">
 			<?php $this->do_meta_boxes( 'settings' ); ?>
 		</form>
+	<?php elseif ( 'caching' === $this->get_current_tab() ) : ?>
+		<div class="box-caching-status" id="wrap-wphb-browser-caching"></div>
+		<br>
+		<?php $this->do_meta_boxes( 'caching' ); ?>
 	<?php else : ?>
 		<div>
 			<?php $this->do_meta_boxes( $this->get_current_tab() ); ?>

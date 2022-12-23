@@ -1,7 +1,7 @@
 /*
  * UnderConstructionPage
  * Main backend JS
- * (c) Web factory Ltd, 2015 - 2020
+ * (c) WebFactory Ltd, 2015 - 2021
  */
 
 
@@ -329,7 +329,6 @@ jQuery(document).ready(function($) {
     return false;
   });
 
-
   // zebra on pricing table, per column
   $('#ucp-pricing-table').find('tr').each(function() {
     $(this).find('td').eq(1).addClass('hover');
@@ -388,6 +387,14 @@ jQuery(document).ready(function($) {
     $(this).blur();
 
     $('#weglot-upsell-dialog').dialog('open');
+
+    return false;
+  });
+
+  $('.settings_page_ucp').on('click change', '.open-smush-install', function(e) {
+    e.preventDefault();
+
+    $('#smush-install-link').trigger('click');
 
     return false;
   });

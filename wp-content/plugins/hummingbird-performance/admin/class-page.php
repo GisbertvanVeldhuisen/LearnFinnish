@@ -20,8 +20,6 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 abstract class Page {
 
-	use MetaBox;
-
 	/**
 	 * Page slug.g
 	 *
@@ -231,6 +229,8 @@ abstract class Page {
 	 * @param string $hook  Hook from where the call is made.
 	 */
 	public function enqueue_scripts( $hook ) {
+		global $wp_version;
+
 		// Styles.
 		wp_enqueue_style( 'wphb-admin', WPHB_DIR_URL . 'admin/assets/css/wphb-app.min.css', array(), WPHB_VERSION );
 
@@ -238,7 +238,7 @@ abstract class Page {
 		wp_enqueue_script(
 			'wphb-wpmudev-sui',
 			WPHB_DIR_URL . 'admin/assets/js/wphb-sui.min.js',
-			array( 'jquery' ),
+			array( 'jquery', 'clipboard' ),
 			WPHB_VERSION,
 			true
 		);
@@ -251,7 +251,7 @@ abstract class Page {
 		}
 
 		// Enqueue Color picker.
-		if ( sanitize_title( __( 'Hummingbird Pro', 'wphb' ) ) . '_page_wphb-advanced' === $hook || 'lazy' === $this->get_current_tab() ) {
+		if ( 'lazy' === $this->get_current_tab() ) {
 			wp_enqueue_script( 'wp-color-picker-alpha', WPHB_DIR_URL . 'admin/assets/dist/wp-color-picker-alpha.min.js', array( 'wp-color-picker' ), WPHB_VERSION, true );
 			wp_enqueue_style( 'wp-color-picker' );
 		}
@@ -264,8 +264,6 @@ abstract class Page {
 
 	/**
 	 * Add meta box.
-	 *
-	 * @deprecated 2.5.0  Use MetaBox trait instead.
 	 *
 	 * @param string   $id               Meta box ID.
 	 * @param string   $title            Meta box title.
@@ -359,20 +357,22 @@ abstract class Page {
 	 */
 	protected function render_header() {
 		?>
-		<div class="sui-notice-top sui-notice-success sui-hidden" id="wphb-ajax-update-notice">
-			<p><?php esc_html_e( 'Settings Updated', 'wphb' ); ?></p>
-		</div>
 		<div class="sui-header">
 			<h1 class="sui-header-title"><?php echo esc_html( get_admin_page_title() ); ?></h1>
 			<div class="sui-actions-right">
 				<?php do_action( 'wphb_sui_header_sui_actions_right' ); ?>
 				<?php if ( ! apply_filters( 'wpmudev_branding_hide_doc_link', false ) ) : ?>
 					<a href="<?php echo esc_url( Utils::get_documentation_url( $this->slug, $this->get_current_tab() ) ); ?>" target="_blank" class="sui-button sui-button-ghost">
-						<i class="sui-icon-academy" aria-hidden="true"></i>
+						<span class="sui-icon-academy" aria-hidden="true"></span>
 						<?php esc_html_e( 'View Documentation', 'wphb' ); ?>
 					</a>
 				<?php endif; ?>
 			</div>
+		</div>
+
+		<div class="sui-floating-notices">
+			<div role="alert" id="wphb-ajax-update-notice" class="sui-notice" aria-live="assertive"></div>
+			<?php do_action( 'wphb_sui_floating_notices' ); ?>
 		</div>
 		<?php
 	}
@@ -384,29 +384,16 @@ abstract class Page {
 		$settings = Settings::get_settings( 'settings' );
 		?>
 		<div class="sui-wrap<?php echo $settings['accessible_colors'] ? ' sui-color-accessible ' : ' '; ?>wrap-wp-hummingbird wrap-wp-hummingbird-page <?php echo 'wrap-' . esc_attr( $this->slug ); ?>">
-			<div class="sui-notice-top sui-notice-success sui-hidden" id="wphb-ajax-update-notice">
-				<p><?php esc_html_e( 'Settings updated', 'wphb' ); ?></p>
-			</div>
 			<?php
 			if ( filter_input( INPUT_GET, 'updated', FILTER_SANITIZE_STRING ) ) {
-				$this->admin_notices->show( 'updated', apply_filters( 'wphb_update_notice_text', __( 'Your changes have been saved.', 'wphb' ) ), 'success' );
+				$this->admin_notices->show_floating( apply_filters( 'wphb_update_notice_text', __( 'Your changes have been saved.', 'wphb' ) ) );
 			}
 
 			$this->render_header();
 			$this->render_inner_content();
 			$this->render_footer();
-
-			if ( WP_Hummingbird::get_instance()->admin->show_quick_setup ) :
-				$this->modal( 'tracking' );
-				$this->modal( 'check-performance-onboard' );
-				?>
-				<script>
-					window.addEventListener("load", function(){
-						window.WPHB_Admin.getModule( 'dashboard' );
-						window.SUI.openModal( 'tracking-modal', 'wpbody-content', undefined, false );
-					});
-				</script>
-			<?php endif; ?>
+			$this->render_modals();
+			?>
 		</div><!-- end container -->
 		<?php
 	}
@@ -426,7 +413,7 @@ abstract class Page {
 		$footer_text = sprintf(
 			/* translators: %s - icon */
 			esc_html__( 'Made with %s by WPMU DEV', 'wphb' ),
-			'<i aria-hidden="true" class="sui-icon-heart"></i>'
+			'<span aria-hidden="true" class="sui-icon-heart"></span>'
 		);
 
 		if ( Utils::is_member() ) {
@@ -446,14 +433,14 @@ abstract class Page {
 
 			<?php if ( ! $hide_footer ) : ?>
 				<ul class="sui-footer-nav">
-					<li><a href="https://premium.wpmudev.org/hub/" target="_blank"><?php esc_html_e( 'The Hub', 'wphb' ); ?></a></li>
-					<li><a href="https://premium.wpmudev.org/projects/category/plugins/" target="_blank"><?php esc_html_e( 'Plugins', 'wphb' ); ?></a></li>
-					<li><a href="https://premium.wpmudev.org/roadmap/" target="_blank"><?php esc_html_e( 'Roadmap', 'wphb' ); ?></a></li>
-					<li><a href="https://premium.wpmudev.org/hub/support/" target="_blank"><?php esc_html_e( 'Support', 'wphb' ); ?></a></li>
-					<li><a href="https://premium.wpmudev.org/docs/" target="_blank"><?php esc_html_e( 'Docs', 'wphb' ); ?></a></li>
-					<li><a href="https://premium.wpmudev.org/hub/community/" target="_blank"><?php esc_html_e( 'Community', 'wphb' ); ?></a></li>
-					<li><a href="https://premium.wpmudev.org/academy/" target="_blank"><?php esc_html_e( 'Academy', 'wphb' ); ?></a></li>
-					<li><a href="https://premium.wpmudev.org/terms-of-service/" target="_blank"><?php esc_html_e( 'Terms of Service', 'wphb' ); ?></a></li>
+					<li><a href="https://wpmudev.com/hub2/" target="_blank"><?php esc_html_e( 'The Hub', 'wphb' ); ?></a></li>
+					<li><a href="https://wpmudev.com/projects/category/plugins/" target="_blank"><?php esc_html_e( 'Plugins', 'wphb' ); ?></a></li>
+					<li><a href="https://wpmudev.com/roadmap/" target="_blank"><?php esc_html_e( 'Roadmap', 'wphb' ); ?></a></li>
+					<li><a href="https://wpmudev.com/hub/support/" target="_blank"><?php esc_html_e( 'Support', 'wphb' ); ?></a></li>
+					<li><a href="https://wpmudev.com/docs/" target="_blank"><?php esc_html_e( 'Docs', 'wphb' ); ?></a></li>
+					<li><a href="https://wpmudev.com/hub2/community/" target="_blank"><?php esc_html_e( 'Community', 'wphb' ); ?></a></li>
+					<li><a href="https://wpmudev.com/academy/" target="_blank"><?php esc_html_e( 'Academy', 'wphb' ); ?></a></li>
+					<li><a href="https://wpmudev.com/terms-of-service/" target="_blank"><?php esc_html_e( 'Terms of Service', 'wphb' ); ?></a></li>
 					<li><a href="https://incsub.com/privacy-policy/" target="_blank"><?php esc_html_e( 'Privacy Policy', 'wphb' ); ?></a></li>
 				</ul>
 			<?php endif; ?>
@@ -462,12 +449,12 @@ abstract class Page {
 
 			<ul class="sui-footer-nav">
 				<li><a href="https://profiles.wordpress.org/wpmudev#content-plugins" target="_blank"><?php esc_html_e( 'Free Plugins', 'wphb' ); ?></a></li>
-				<li><a href="https://premium.wpmudev.org/features/" target="_blank"><?php esc_html_e( 'Membership', 'wphb' ); ?></a></li>
-				<li><a href="https://premium.wpmudev.org/roadmap/" target="_blank"><?php esc_html_e( 'Roadmap', 'wphb' ); ?></a></li>
+				<li><a href="https://wpmudev.com/features/" target="_blank"><?php esc_html_e( 'Membership', 'wphb' ); ?></a></li>
+				<li><a href="https://wpmudev.com/roadmap/" target="_blank"><?php esc_html_e( 'Roadmap', 'wphb' ); ?></a></li>
 				<li><a href="https://wordpress.org/support/plugin/hummingbird-performance" target="_blank"><?php esc_html_e( 'Support', 'wphb' ); ?></a></li>
-				<li><a href="https://premium.wpmudev.org/docs/" target="_blank"><?php esc_html_e( 'Docs', 'wphb' ); ?></a></li>
-				<li><a href="https://premium.wpmudev.org/hub-welcome/" target="_blank"><?php esc_html_e( 'The Hub', 'wphb' ); ?></a></li>
-				<li><a href="https://premium.wpmudev.org/terms-of-service/" target="_blank"><?php esc_html_e( 'Terms of Service', 'wphb' ); ?></a></li>
+				<li><a href="https://wpmudev.com/docs/" target="_blank"><?php esc_html_e( 'Docs', 'wphb' ); ?></a></li>
+				<li><a href="https://wpmudev.com/hub-welcome/" target="_blank"><?php esc_html_e( 'The Hub', 'wphb' ); ?></a></li>
+				<li><a href="https://wpmudev.com/terms-of-service/" target="_blank"><?php esc_html_e( 'Terms of Service', 'wphb' ); ?></a></li>
 				<li><a href="https://incsub.com/privacy-policy/" target="_blank"><?php esc_html_e( 'Privacy Policy', 'wphb' ); ?></a></li>
 			</ul>
 
@@ -476,19 +463,57 @@ abstract class Page {
 		<?php if ( ! $hide_footer ) : ?>
 			<ul class="sui-footer-social">
 				<li><a href="https://www.facebook.com/wpmudev" target="_blank">
-						<i class="sui-icon-social-facebook" aria-hidden="true"></i>
+						<span class="sui-icon-social-facebook" aria-hidden="true"></span>
 						<span class="sui-screen-reader-text">Facebook</span>
 					</a></li>
 				<li><a href="https://twitter.com/wpmudev" target="_blank">
-						<i class="sui-icon-social-twitter" aria-hidden="true"></i>
+						<span class="sui-icon-social-twitter" aria-hidden="true"></span>
 						<span class="sui-screen-reader-text">Twitter</span>
 					</a></li>
 				<li><a href="https://www.instagram.com/wpmu_dev/" target="_blank">
-						<i class="sui-icon-instagram" aria-hidden="true"></i>
+						<span class="sui-icon-instagram" aria-hidden="true"></span>
 						<span class="sui-screen-reader-text">Instagram</span>
 					</a></li>
 			</ul>
 		<?php endif; ?>
+		<?php
+	}
+
+	/**
+	 * Render modals.
+	 *
+	 * @since 2.6.0
+	 */
+	protected function render_modals() {
+		$show = false;
+
+		if ( is_multisite() && ( is_network_admin() || is_super_admin() ) ) {
+			$this->modal( 'clear-cache-network-wide' );
+		}
+
+		if ( WP_Hummingbird::get_instance()->admin->show_quick_setup ) {
+			$show  = true;
+			$modal = 'tracking-modal';
+			$this->modal( 'tracking' );
+			$this->modal( 'check-performance-onboard' );
+		} elseif ( WP_Hummingbird::get_instance()->admin->show_upgrade_summary ) {
+			$show  = true;
+			$modal = 'upgrade-summary-modal';
+			$this->modal( 'upgrade-summary' );
+		}
+
+		if ( ! $show ) {
+			return;
+		}
+		?>
+		<script>
+			window.addEventListener("load", function(){
+				<?php if ( WP_Hummingbird::get_instance()->admin->show_quick_setup ) : ?>
+					window.WPHB_Admin.getModule( 'dashboard' );
+				<?php endif; ?>
+				window.SUI.openModal( '<?php echo esc_attr( $modal ); ?>', 'wpbody-content', undefined, false );
+			});
+		</script>
 		<?php
 	}
 

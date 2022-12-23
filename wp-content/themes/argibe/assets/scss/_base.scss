@@ -1,0 +1,172 @@
+html {
+  width: 100%;
+  font-family: $primary-font;
+
+}
+
+
+body {
+  margin: 0;
+}
+
+ul {
+  li {
+    list-style: none;
+
+    a {
+      text-decoration: none;
+    }
+  }
+}
+
+.is-scroll {
+  .section-menu {
+    position: fixed;
+    background: #fff;
+    box-shadow: 0 0 7px #b8b8b8;
+    width: 100%;
+  }
+}
+
+a {
+  text-decoration: none
+}
+
+p {
+  margin: 4px 0;
+  color: $text;
+}
+
+.icon {
+  width: 20px;
+  height: 21px;
+  display: inline-block;
+  vertical-align: sub;
+  background-size: contain;
+  background-position: bottom right;
+  background-repeat: no-repeat;
+
+  &.email {
+    @include icon($envelope, white)
+  }
+
+  &.phone {
+    @include icon($phone, white)
+  }
+
+  &.facebook {
+    @include icon($facebook, white)
+  }
+
+  &.linkedin {
+    @include icon($linkedin, white)
+
+  }
+
+  &.instagram {
+    @include icon($instagram, white)
+  }
+
+  &.city {
+    @include icon($home, white)
+  }
+
+  &.location {
+    @include icon($mailbox, white)
+  }
+}
+
+.background- {
+  &main {
+    background-color: $primary-color;
+
+
+    h2, h3 {
+      color: white;
+    }
+
+    p {
+      color: white;
+    }
+  }
+
+  &secondary {
+    background-color: $secondary-color;
+
+    h2, h3 {
+      color: white;
+    }
+
+    p {
+      color: white;
+    }
+  }
+}
+
+.button {
+  margin-top: 20px;
+  display: inline-block;
+  padding: 15px 20px;
+  background: $secondary-color;
+  border-radius: 4px;
+  position: relative;
+  color: white;
+  font-weight: 600;
+  -webkit-appearance: none!important;
+  -moz-appearance: none!important;
+  appearance: none!important;
+  box-sizing: border-box;
+  @include transition(400ms ease);
+  border: none;
+  cursor: pointer;
+
+  &:hover {
+    background-color: #f18e00;
+
+    .icon {
+      &.arrrow {
+        @include transform(translateX(5px));
+      }
+    }
+  }
+
+  .icon {
+    width: 20px;
+    height: 21px;
+    display: inline-block;
+    vertical-align: sub;
+    background-size: contain;
+    background-position: bottom right;
+    background-repeat: no-repeat;
+    @include transition(400ms ease);
+
+    &.arrrow {
+      margin-left: 10px;
+      width: 15px;
+      height: 15px;
+      vertical-align: middle;
+      @include icon($arrow-right, white)
+    }
+  }
+}
+
+img {
+  width: 100%;
+  height: auto;
+}
+
+.gfield_required {
+  display: inline-block !important;
+}
+
+h1 {
+  font-size: 42px;
+  margin: 0;
+  color: white;
+}
+
+h2, h3 {
+  margin: 0;
+  font-size: 30px;
+  color: $primary-color;
+}

@@ -10,6 +10,8 @@ namespace Hummingbird\Admin\Pages;
 
 use Hummingbird\Admin\Page;
 use Hummingbird\Core\Modules\Advanced as Advanced_Module;
+use Hummingbird\Core\Modules\Caching\Preload;
+use Hummingbird\Core\Modules\Minify\Minify_Group;
 use Hummingbird\Core\Settings;
 use Hummingbird\Core\Utils;
 
@@ -36,6 +38,7 @@ class Advanced extends Page {
 			'db'     => __( 'Database Cleanup', 'wphb' ),
 			'lazy'   => __( 'Lazy Load', 'wphb' ),
 			'system' => __( 'System Information', 'wphb' ),
+			'health' => __( 'Plugin Health', 'wphb' ),
 		);
 	}
 
@@ -91,6 +94,20 @@ class Advanced extends Page {
 			'system'
 		);
 
+		/**
+		 * Plugin health meta box.
+		 *
+		 * @since 2.7.0
+		 */
+		$this->add_meta_box(
+			'advanced/site-health',
+			__( 'Plugin Health', 'wphb' ),
+			array( $this, 'site_health_metabox' ),
+			null,
+			null,
+			'health'
+		);
+
 		if ( is_multisite() && ! is_network_admin() ) {
 			return;
 		}
@@ -125,15 +142,36 @@ class Advanced extends Page {
 			$prefetch .= $url . "\r\n";
 		}
 
+		$query_string = $options['query_string'];
+		$remove_emoji = $options['emoji'];
+
+		if ( ( $options['query_strings_global'] || $options['emoji_global'] ) && is_multisite() && ! is_network_admin() ) {
+			$network_options = get_blog_option( get_main_site_id(), 'wphb_settings' );
+
+			// See if we need to fetch the network value for query strings option.
+			if ( $options['query_strings_global'] && isset( $network_options['advanced'] ) && isset( $network_options['advanced']['query_string'] ) ) {
+				$query_string = $network_options['advanced']['query_string'];
+				add_filter( 'wphb_query_strings_disabled', '__return_true' );
+			}
+
+			// See if we need to fetch the network value for emoji option.
+			if ( $options['emoji_global'] && isset( $network_options['advanced'] ) && isset( $network_options['advanced']['emoji'] ) ) {
+				$remove_emoji = $network_options['advanced']['emoji'];
+				add_filter( 'wphb_emojis_disabled', '__return_true' );
+			}
+		}
+
 		$this->view(
 			'advanced/general-meta-box',
 			array(
-				'woo_active'     => class_exists( 'woocommerce' ),
-				'woo_link'       => self_admin_url( 'admin.php?page=wc-settings&tab=products' ),
-				'query_stings'   => $options['query_string'],
-				'cart_fragments' => $options['cart_fragments'],
-				'emoji'          => $options['emoji'],
-				'prefetch'       => trim( $prefetch ),
+				'woo_active'           => class_exists( 'woocommerce' ),
+				'woo_link'             => self_admin_url( 'admin.php?page=wc-settings&tab=products' ),
+				'query_stings'         => $query_string,
+				'query_strings_global' => $options['query_strings_global'],
+				'cart_fragments'       => $options['cart_fragments'],
+				'emoji'                => $remove_emoji,
+				'emoji_global'         => $options['emoji_global'],
+				'prefetch'             => trim( $prefetch ),
 			)
 		);
 	}
@@ -197,18 +235,49 @@ class Advanced extends Page {
 		$this->view(
 			'advanced/lazy-load-meta-box',
 			array(
-				'is_enabled'               			=> $options['lazy_load']['enabled'],
-				'method'                   			=> $options['lazy_load']['method'],
-				'button'                   			=> $options['lazy_load']['button'],
-				'threshold'                			=> $options['lazy_load']['threshold'],
-				'smush_activate_url'       			=> wp_nonce_url( 'plugins.php?action=activate&amp;plugin=wp-smushit/wp-smush.php', 'activate-plugin_wp-smushit/wp-smush.php' ),
-				'smush_activate_pro_url'   			=> wp_nonce_url( 'plugins.php?action=activate&amp;plugin=wp-smush-pro/wp-smush.php', 'activate-plugin_wp-smush-pro/wp-smush.php' ),
-				'activate_smush_lazy_load_url' 		=> self_admin_url( 'admin.php?page=smush&view=lazy_load' ),
-				'is_smush_lazy_load_configurable' 	=> $this->is_lazy_load_configurable(),
-				'is_smush_active'          			=> $this->is_smush_enabled(),
-				'is_smush_installed'       			=> $this->is_smush_installed(),
-				'is_smush_pro'             			=> $this->is_smush_pro,
-				'smush_lazy_load'          			=> $this->is_lazy_load_enabled(),
+				'is_enabled'                      => $options['lazy_load']['enabled'],
+				'method'                          => $options['lazy_load']['method'],
+				'button'                          => $options['lazy_load']['button'],
+				'threshold'                       => $options['lazy_load']['threshold'],
+				'smush_activate_url'              => wp_nonce_url( 'plugins.php?action=activate&amp;plugin=wp-smushit/wp-smush.php', 'activate-plugin_wp-smushit/wp-smush.php' ),
+				'smush_activate_pro_url'          => wp_nonce_url( 'plugins.php?action=activate&amp;plugin=wp-smush-pro/wp-smush.php', 'activate-plugin_wp-smush-pro/wp-smush.php' ),
+				'activate_smush_lazy_load_url'    => self_admin_url( 'admin.php?page=smush&view=lazy_load' ),
+				'is_smush_lazy_load_configurable' => $this->is_lazy_load_configurable(),
+				'is_smush_active'                 => $this->is_smush_enabled(),
+				'is_smush_installed'              => $this->is_smush_installed(),
+				'is_smush_pro'                    => $this->is_smush_pro,
+				'smush_lazy_load'                 => $this->is_lazy_load_enabled(),
+			)
+		);
+	}
+
+	/**
+	 * *************************
+	 * Plugin health page meta boxes.
+	 *
+	 * @since 2.7.0
+	 ***************************/
+
+	/**
+	 * Plugin health meta box.
+	 *
+	 * @since 2.7.0
+	 */
+	public function site_health_metabox() {
+		$advanced_module = Utils::get_module( 'advanced' );
+
+		$minify_groups  = Minify_Group::get_minify_groups();
+		$orphaned_metas = $advanced_module->get_orphaned_ao() - 18 * count( $minify_groups );
+
+		$preloader = new Preload();
+
+		$this->view(
+			'advanced/site-health-meta-box',
+			array(
+				'minify_groups'  => $minify_groups,
+				'orphaned_metas' => $orphaned_metas,
+				'preloading'     => Settings::get_setting( 'preload', 'page_cache' ) || $preloader->is_process_running(),
+				'queue_size'     => $preloader->get_queue_size(),
 			)
 		);
 	}

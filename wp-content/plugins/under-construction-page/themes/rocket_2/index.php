@@ -2,7 +2,7 @@
 /*
  * UnderConstructionPage
  * Rocket #2 theme
- * (c) WebFactory Ltd, 2015 - 2020
+ * (c) WebFactory Ltd, 2015 - 2021
  */
 
 

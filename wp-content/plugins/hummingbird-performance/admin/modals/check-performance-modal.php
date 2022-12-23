@@ -27,7 +27,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 				</h3>
 			</div>
 
-			<div class="sui-box-body">
+			<div class="sui-box-body wphb-performance-scan-modal">
 				<p id="dialogDescription">
 					<?php esc_html_e( 'Hummingbird is running a test to measure your website performance, please wait.', 'wphb' ); ?>
 				</p>
@@ -35,7 +35,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 				<div class="sui-progress-block">
 					<div class="sui-progress">
 						<span class="sui-progress-icon" aria-hidden="true">
-							<i class="sui-icon-loader sui-loading"></i>
+							<span class="sui-icon-loader sui-loading"></span>
 						</span>
 						<div class="sui-progress-text">
 							<span>0%</span>

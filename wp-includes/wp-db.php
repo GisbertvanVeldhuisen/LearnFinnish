@@ -56,7 +56,7 @@ class wpdb {
 	 * Default behavior is to show errors if both WP_DEBUG and WP_DEBUG_DISPLAY
 	 * evaluated to true.
 	 *
-	 * @since 0.71
+	 * @since 0.71  
 	 * @var bool
 	 */
 	var $show_errors = false;

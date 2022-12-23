@@ -46,9 +46,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	<p><?php echo esc_html( $description ); ?></p>
 
 	<?php if ( empty( $last_test ) ) : ?>
-		<div class="sui-notice sui-notice-success">
-			<p><?php esc_html_e( 'Nice! All tests passed.', 'wphb' ); ?></p>
-		</div>
+		<?php $this->admin_notices->show_inline( esc_html__( 'Nice! All tests passed.', 'wphb' ) ); ?>
 	<?php endif; ?>
 </div>
 
@@ -72,7 +70,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 			<div class="sui-accordion-item sui-<?php echo esc_attr( $impact_score_class ); ?>" id="<?php echo esc_attr( $rule ); ?>">
 				<div class="sui-accordion-item-header">
 					<div class="sui-accordion-item-title">
-						<i aria-hidden="true" class="sui-icon-<?php echo esc_attr( $impact_icon_class ); ?> sui-<?php echo esc_attr( $impact_score_class ); ?>"></i>
+						<span aria-hidden="true" class="sui-icon-<?php echo esc_attr( $impact_icon_class ); ?> sui-<?php echo esc_attr( $impact_score_class ); ?>"></span>
 						<?php echo esc_html( $rule_result->title ); ?>
 					</div>
 					<div>
@@ -82,18 +80,18 @@ if ( ! defined( 'ABSPATH' ) ) {
 					<div>
 						<?php if ( 'disabled' !== $impact_score_class && $this->view_exists( "performance/audits/{$rule}" ) ) : ?>
 							<?php
-							if ( 'time-to-first-byte' === $rule && 1 !== $rule_result->score && isset( $rule_result->details->overallSavingsMs ) ) {
+							if ( 'server-response-time' === $rule && 1 !== $rule_result->score && isset( $rule_result->details->overallSavingsMs ) ) {
 								printf(
 									/* translators: %s - number of ms */
 									esc_html__( 'Potential savings of %s ms', 'wphb' ),
-									esc_html( $rule_result->details->overallSavingsMs )
+									(int) $rule_result->details->overallSavingsMs
 								);
 							} elseif ( ! empty( $rule_result->description ) || ! empty( $rule_result->tip ) ) {
 								echo isset( $rule_result->displayValue ) ? esc_html( $rule_result->displayValue ) : '';
 							}
 							?>
 							<button class="sui-button-icon sui-accordion-open-indicator" aria-label="<?php esc_attr_e( 'Open item', 'wphb' ); ?>">
-								<i class="sui-icon-chevron-down" aria-hidden="true"></i>
+								<span class="sui-icon-chevron-down" aria-hidden="true"></span>
 							</button>
 						<?php endif; ?>
 					</div>

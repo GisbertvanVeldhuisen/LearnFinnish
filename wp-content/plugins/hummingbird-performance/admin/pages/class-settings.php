@@ -25,9 +25,10 @@ class Settings extends Page {
 	 */
 	public function on_load() {
 		$this->tabs = array(
-			'general' => __( 'General', 'wphb' ),
-			'data'    => __( 'Data & Settings', 'wphb' ),
-			'main'    => __( 'Accessibility', 'wphb' ),
+			'general'       => __( 'General', 'wphb' ),
+			'import_export' => __( 'Import / Export', 'wphb' ),
+			'data'          => __( 'Data & Settings', 'wphb' ),
+			'main'          => __( 'Accessibility', 'wphb' ),
 		);
 	}
 
@@ -42,6 +43,17 @@ class Settings extends Page {
 			null,
 			array( $this, 'accessibility_metabox_footer' ),
 			'general'
+		);
+
+		$this->add_meta_box(
+			'import_export',
+			__( 'Import / Export', 'wphb' ),
+			function() {
+				$this->view( 'settings/import-export-meta-box' );
+			},
+			null,
+			null,
+			'import_export'
 		);
 
 		$this->add_meta_box(
@@ -100,7 +112,7 @@ class Settings extends Page {
 	 * @since 2.2.0
 	 */
 	public function general_metabox() {
-		$link = Utils::is_member() ? 'https://premium.wpmudev.org/translate/projects/wphb' : 'https://translate.wordpress.org/projects/wp-plugins/wp-hummingbird';
+		$link = Utils::is_member() ? 'https://wpmudev.com/translate/projects/wphb' : 'https://translate.wordpress.org/projects/wp-plugins/wp-hummingbird';
 
 		$site_locale = get_locale();
 

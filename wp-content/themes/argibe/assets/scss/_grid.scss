@@ -1,0 +1,111 @@
+@import "variables";
+
+.container {
+  max-width: $max-container-width;
+  position: relative;
+  margin: auto;
+  width: calc(100% + #{$margin});
+  box-sizing: border-box;
+  @include flexbox;
+  @include flex-wrap(wrap);
+  @include align-items(center);
+  @include media(laptop) {
+    padding-left: 5% !important;
+    padding-right: 5% !important;
+    max-width: 100%;
+  }
+
+
+  .row {
+    @include flexbox;
+    @include flex-wrap(wrap);
+  }
+
+  .column {
+    margin: $margin;
+    @include media(phone) {
+      margin: $margin 0;
+    }
+  }
+
+  .grid-container {
+    margin: -$margin;
+    width: calc(100% + (#{$margin} * 2));
+    @include flex-wrap(wrap);
+    @include flexbox;
+  }
+
+  .full {
+    min-width: calc(100% - (#{$margin} * 2));
+    max-width: calc(100% - (#{$margin} * 2));
+    box-sizing: border-box;
+    @include media(phone) {
+      min-width: 100%;
+      max-width: 100%;
+    }
+  }
+
+  .one-half {
+    display: inline-block;
+    min-width: calc(50% - (#{$margin} * 2));
+    max-width: calc(50% - (#{$margin} * 2));
+    @include media(large-tablet) {
+      min-width: calc(100% - (#{$margin} * 2));
+      max-width: calc(100% - (#{$margin} * 2));
+    }
+    @include media(phone) {
+      min-width: 100%;
+      max-width: 100%;
+    }
+  }
+
+  .one-third {
+    display: inline-block;
+    min-width: calc(100% / 3 - (#{$margin} * 2));
+    max-width: calc(100% / 3 - (#{$margin} * 2));
+    @include media(phone) {
+      margin: $margin;
+    }
+  }
+
+  .two-third {
+    display: inline-block;
+    min-width: calc(100% / 3 * 2 - (#{$margin} * 2));
+    max-width: calc(100% / 3 * 2 - (#{$margin} * 2));
+  }
+
+  .one-fourth {
+    display: inline-block;
+    min-width: calc(100% / 4 - (#{$margin} * 2));
+    max-width: calc(100% / 4 - (#{$margin} * 2));
+  }
+
+  .three-fourth {
+    display: inline-block;
+    min-width: calc(25% * 3 - (#{$margin} * 2));
+    max-width: calc(25% * 3 - (#{$margin} * 2));
+  }
+
+  .six-eight {
+    width: 100%;
+    box-sizing: border-box;
+    order: 2;
+
+    @media only screen and (min-width: $lg) {
+      width: calc(100% / 8 * 6);
+      order: unset;
+    }
+  }
+
+  .two-eight {
+    width: 100%;
+    box-sizing: border-box;
+    order: 1;
+
+    @media only screen and (min-width: $lg) {
+      width: calc(100% / 8 * 2);
+      order: unset;
+    }
+  }
+
+}

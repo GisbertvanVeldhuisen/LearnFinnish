@@ -36,14 +36,17 @@ if ( $settings['remove_settings'] ) {
 	delete_transient( 'wphb-minification-errors' );
 	delete_option( 'wphb-minify-server-errors' );
 	delete_option( 'wphb-minification-files-scanned' );
+	delete_option( 'wphb-minification-show-config_modal' );
+	delete_option( 'wphb-minification-show-advanced_modal' );
 
 	delete_option( 'wphb_settings' );
 	delete_site_option( 'wphb_settings' );
 
+	delete_option( 'wphb-hide-tutorials' );
+	delete_option( 'wphb-quick-setup' );
 	delete_site_option( 'wphb_version' );
 	delete_site_option( 'wphb_run_onboarding' );
 
-	delete_site_option( 'wphb-new-user-tour' );
 	delete_site_option( 'wphb-free-install-date' );
 
 	delete_site_option( 'wphb-gzip-api-checked' );
@@ -55,7 +58,6 @@ if ( $settings['remove_settings'] ) {
 	delete_option( 'wphb-notice-cache-cleaned-show' );   // per subsite.
 	delete_site_option( 'wphb-notice-free-rated-show' ); // network wide.
 	delete_site_option( 'wphb-cloudflare-dash-notice' ); // network wide.
-	delete_site_option( 'wphb-cloudflare-dash-notice' );
 	delete_site_option( 'wphb-notice-free-deactivated-dismissed' );
 	delete_site_option( 'wphb-notice-free-deactivated-show' );
 	// Asset optimization notices.

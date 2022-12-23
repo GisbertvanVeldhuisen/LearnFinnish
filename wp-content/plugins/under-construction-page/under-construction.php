@@ -4,11 +4,14 @@
   Plugin URI: https://underconstructionpage.com/
   Description: Put your site behind a great looking under construction, coming soon, maintenance mode or landing page.
   Author: WebFactory Ltd
-  Version: 3.81
+  Version: 3.88
+  Requires at least: 4.0
+  Requires PHP: 5.2
+  Tested up to: 5.6
   Author URI: https://www.webfactoryltd.com/
   Text Domain: under-construction-page
 
-  Copyright 2015 - 2020  Web factory Ltd  (email: ucp@webfactoryltd.com)
+  Copyright 2015 - 2021  WebFactory Ltd  (email: ucp@webfactoryltd.com)
 
   This program is free software; you can redistribute it and/or modify
   it under the terms of the GNU General Public License, version 2, as
@@ -38,6 +41,8 @@ define('UCP_POINTERS_KEY', 'ucp_pointers');
 define('UCP_NOTICES_KEY', 'ucp_notices');
 define('UCP_SURVEYS_KEY', 'ucp_surveys');
 
+require_once 'wf-flyout/wf-flyout.php';
+new wf_flyout(__FILE__);
 
 require_once UCP_PLUGIN_DIR . 'ucp-license.php';
 
@@ -79,6 +84,7 @@ class UCP {
                             array(__CLASS__, 'plugin_action_links'));
       add_filter('plugin_row_meta', array(__CLASS__, 'plugin_meta_links'), 10, 2);
       add_filter('admin_footer_text', array(__CLASS__, 'admin_footer_text'));
+      add_filter('admin_footer', array(__CLASS__, 'admin_footer'));
 
       // manages admin header notifications
       add_action('admin_notices', array(__CLASS__, 'admin_notices'));
@@ -95,9 +101,6 @@ class UCP {
       add_action('wp_ajax_ucp_dismiss_survey', array(__CLASS__, 'dismiss_survey_ajax'));
       add_action('wp_ajax_ucp_submit_survey', array(__CLASS__, 'submit_survey_ajax'));
       add_action('wp_ajax_ucp_submit_support_message', array(__CLASS__, 'submit_support_message_ajax'));
-
-      add_filter('install_plugins_table_api_args_featured', array(__CLASS__, 'featured_plugins_tab'));
-      add_filter('install_plugins_table_api_args_recommended', array(__CLASS__, 'featured_plugins_tab'));
     } else {
       // main plugin logic
       add_action('wp', array(__CLASS__, 'display_construction_page'), 0, 1);
@@ -520,55 +523,52 @@ class UCP {
     $out = '';
 
     if (!empty($options['social_facebook'])) {
-      $out .= '<a title="Facebook" href="' . $options['social_facebook'] . '" target="_blank"><i class="fa fa-facebook-square fa-3x"></i></a>';
+      $out .= '<a title="Facebook" href="' . esc_attr($options['social_facebook']) . '" target="_blank"><i class="fa fa-facebook-square fa-3x"></i></a>';
     }
     if (!empty($options['social_twitter'])) {
-      $out .= '<a title="Twitter" href="' . $options['social_twitter'] . '" target="_blank"><i class="fa fa-twitter-square fa-3x"></i></a>';
-    }
-    if (!empty($options['social_google'])) {
-      $out .= '<a title="Google+" href="' . $options['social_google'] . '" target="_blank"><i class="fa fa-google-plus-square fa-3x"></i></a>';
+      $out .= '<a title="Twitter" href="' . esc_attr($options['social_twitter']) . '" target="_blank"><i class="fa fa-twitter-square fa-3x"></i></a>';
     }
     if (!empty($options['social_linkedin'])) {
-      $out .= '<a title="LinkedIn" href="' . $options['social_linkedin'] . '" target="_blank"><i class="fa fa-linkedin-square fa-3x"></i></a>';
+      $out .= '<a title="LinkedIn" href="' . esc_attr($options['social_linkedin']) . '" target="_blank"><i class="fa fa-linkedin-square fa-3x"></i></a>';
     }
     if (!empty($options['social_youtube'])) {
-      $out .= '<a title="YouTube" href="' . $options['social_youtube'] . '" target="_blank"><i class="fa fa-youtube-square fa-3x"></i></a>';
+      $out .= '<a title="YouTube" href="' . esc_attr($options['social_youtube']) . '" target="_blank"><i class="fa fa-youtube-square fa-3x"></i></a>';
     }
     if (!empty($options['social_vimeo'])) {
-      $out .= '<a title="Vimeo" href="' . $options['social_vimeo'] . '" target="_blank"><i class="fa fa-vimeo-square fa-3x"></i></a>';
+      $out .= '<a title="Vimeo" href="' . esc_attr($options['social_vimeo']) . '" target="_blank"><i class="fa fa-vimeo-square fa-3x"></i></a>';
     }
     if (!empty($options['social_pinterest'])) {
-      $out .= '<a title="Pinterest" href="' . $options['social_pinterest'] . '" target="_blank"><i class="fa fa-pinterest-square fa-3x"></i></a>';
+      $out .= '<a title="Pinterest" href="' . esc_attr($options['social_pinterest']) . '" target="_blank"><i class="fa fa-pinterest-square fa-3x"></i></a>';
     }
     if (!empty($options['social_dribbble'])) {
-      $out .= '<a title="Dribbble" href="' . $options['social_dribbble'] . '" target="_blank"><i class="fa fa-dribbble fa-3x"></i></a>';
+      $out .= '<a title="Dribbble" href="' . esc_attr($options['social_dribbble']) . '" target="_blank"><i class="fa fa-dribbble fa-3x"></i></a>';
     }
     if (!empty($options['social_behance'])) {
-      $out .= '<a title="Behance" href="' . $options['social_behance'] . '" target="_blank"><i class="fa fa-behance-square fa-3x"></i></a>';
+      $out .= '<a title="Behance" href="' . esc_attr($options['social_behance']) . '" target="_blank"><i class="fa fa-behance-square fa-3x"></i></a>';
     }
     if (!empty($options['social_instagram'])) {
-      $out .= '<a title="Instagram" href="' . $options['social_instagram'] . '" target="_blank"><i class="fa fa-instagram fa-3x"></i></a>';
+      $out .= '<a title="Instagram" href="' . esc_attr($options['social_instagram']) . '" target="_blank"><i class="fa fa-instagram fa-3x"></i></a>';
     }
     if (!empty($options['social_tumblr'])) {
-      $out .= '<a title="Tumblr" href="' . $options['social_tumblr'] . '" target="_blank"><i class="fa fa-tumblr-square fa-3x"></i></a>';
+      $out .= '<a title="Tumblr" href="' . esc_attr($options['social_tumblr']) . '" target="_blank"><i class="fa fa-tumblr-square fa-3x"></i></a>';
     }
     if (!empty($options['social_vk'])) {
-      $out .= '<a title="VK" href="' . $options['social_vk'] . '" target="_blank"><i class="fa fa-vk fa-3x"></i></a>';
+      $out .= '<a title="VK" href="' . esc_attr($options['social_vk']) . '" target="_blank"><i class="fa fa-vk fa-3x"></i></a>';
     }
     if (!empty($options['social_skype'])) {
-      $out .= '<a title="Skype" href="skype:' . $options['social_skype'] . '?chat"><i class="fa fa-skype fa-3x"></i></a>';
+      $out .= '<a title="Skype" href="skype:' . esc_attr($options['social_skype']) . '?chat"><i class="fa fa-skype fa-3x"></i></a>';
     }
     if (!empty($options['social_whatsapp'])) {
-      $out .= '<a title="WhatsApp" href="https://api.whatsapp.com/send?phone=' . str_replace('+', '', $options['social_whatsapp']) . '"><i class="fa fa-whatsapp fa-3x"></i></a>';
+      $out .= '<a title="WhatsApp" href="https://api.whatsapp.com/send?phone=' . str_replace('+', '', esc_attr($options['social_whatsapp'])) . '"><i class="fa fa-whatsapp fa-3x"></i></a>';
     }
     if (!empty($options['social_telegram'])) {
-      $out .= '<a title="Telegram" href="' . $options['social_telegram'] . '"><i class="fa fa-telegram fa-3x"></i></a>';
+      $out .= '<a title="Telegram" href="' . esc_attr($options['social_telegram']) . '"><i class="fa fa-telegram fa-3x"></i></a>';
     }
     if (!empty($options['social_email'])) {
-      $out .= '<a title="Email" href="mailto:' . self::encode_email($options['social_email']) . '"><i class="fa fa-envelope fa-3x"></i></a>';
+      $out .= '<a title="Email" href="mailto:' . esc_attr(self::encode_email($options['social_email'])) . '"><i class="fa fa-envelope fa-3x"></i></a>';
     }
     if (!empty($options['social_phone'])) {
-      $out .= '<a title="Phone" href="tel:' . $options['social_phone'] . '"><i class="fa fa-phone-square fa-3x"></i></a>';
+      $out .= '<a title="Phone" href="tel:' . esc_attr($options['social_phone']) . '"><i class="fa fa-phone-square fa-3x"></i></a>';
     }
 
     return $out;
@@ -761,11 +761,15 @@ class UCP {
 
     // pro activated - update
     if (self::is_plugin_page() && UCP_license::is_activated()) {
-      $plugin = plugin_basename(__FILE__);
-      $update_url = wp_nonce_url(admin_url('update.php?action=upgrade-plugin&amp;plugin=' . urlencode($plugin)), 'upgrade-plugin_' . $plugin);
       echo '<div id="ucp_update_pro" class="notice-error notice">';
-      echo '<p class="center">Thank you for purchasing UnderConstructionPage PRO! <b>Your license has been verified and activated.</b></p><p>Please <b>click the button below</b> to update plugin files to PRO version.</p>';
-      echo '<p><a href="' . esc_url($update_url) . '" class="button button-primary">Update UnderConstructionPage files to PRO</a></p>';
+      echo '<p class="center">Thank you for purchasing UnderConstructionPage PRO! <b>Your license has been verified and activated.</b><br>To start using the PRO version, please follow these steps:</p>';
+      echo '<ol>';
+      echo '<li><a href="https://underconstructionpage.com/pro-download/" target="_blank">Download</a> the latest version of the PRO plugin.</li>';
+      echo '<li>Go to <a href="' . admin_url('plugin-install.php') . '">Plugins - Add New - Upload Plugin</a> and upload the ZIP you just downloaded.</li>';
+      echo '<li>If asked to replace (overwrite) the free version - confirm it.</li>';
+      echo '<li>Activate the plugin.</li>';
+      echo '<li>That\'s it, no more steps.</li>';
+      echo '</ol>';
       echo '</div>';
       $shown = true;
 
@@ -816,7 +820,7 @@ class UCP {
       $dismiss_url = add_query_arg(array('action' => 'ucp_dismiss_notice', 'notice' => 'welcome', 'redirect' => urlencode($_SERVER['REQUEST_URI'])), admin_url('admin.php'));
 
       echo '<div id="ucp_rate_notice" class="notice-info notice"><p>Hi' . $name . ',<br>';
-      echo 'We have a <a class="open-ucp-upsell" data-pro-ad="notification-welcome-text" href="#">special time-sensitive offer</a> available just for another <b class="ucp-countdown">59min</b>! A <b>20% DISCOUNT</b> on our most popular lifetime licenses!<br>No nonsense! Pay once and use the plugin forever. <a class="open-ucp-upsell" data-pro-ad="notification-welcome-text2" href="#">Get</a> more than 50+ extra features, 220+ premium themes and over a million professional images.</p>';
+      echo 'We have a <a class="open-ucp-upsell" data-pro-ad="notification-welcome-text" href="#">special time-sensitive offer</a> available just for another <b class="ucp-countdown">59min</b>! A <b>20% DISCOUNT</b> on our most popular lifetime licenses!<br>No nonsense! Pay once and use the plugin forever. <a class="open-ucp-upsell" data-pro-ad="notification-welcome-text2" href="#">Get</a> more than 50+ extra features, 250+ premium themes and over two million professional images.</p>';
 
       echo '<a href="#" class="button-primary open-ucp-upsell" data-pro-ad="notification-welcome-button">Upgrade to PRO now with a SPECIAL 20% WELCOME DISCOUNT</a>';
       echo '&nbsp;&nbsp;&nbsp;&nbsp;<a href="' . esc_url($dismiss_url) . '"><small>' . __('I\'m not interested (remove this notice)', 'under-construction-page') . '</small></a>';
@@ -831,7 +835,7 @@ class UCP {
       $dismiss_url = add_query_arg(array('action' => 'ucp_dismiss_notice', 'notice' => 'olduser', 'redirect' => urlencode($_SERVER['REQUEST_URI'])), admin_url('admin.php'));
 
       echo '<div id="ucp_rate_notice" class="notice-info notice"><p>Hi' . $name . ',<br>';
-      echo 'We have a <a class="open-ucp-upsell" data-pro-ad="notification-olduser-text" href="#">special offer</a> only for <b>users like you</b> who\'ve been using the UnderConstructionPage for a longer period of time: a <b>special DISCOUNT</b> on our most popular lifetime licenses!<br>No nonsense! Pay once and use the plugin forever.<br><a class="open-ucp-upsell" data-pro-ad="notification-olduser-text" href="#">Upgrade now</a> to <b>PRO</b> &amp; get more than 50+ extra features, 220+ premium themes and over a million HD images.</p>';
+      echo 'We have a <a class="open-ucp-upsell" data-pro-ad="notification-olduser-text" href="#">special offer</a> only for <b>users like you</b> who\'ve been using the UnderConstructionPage for a longer period of time: a <b>special DISCOUNT</b> on our most popular lifetime licenses!<br>No nonsense! Pay once and use the plugin forever.<br><a class="open-ucp-upsell" data-pro-ad="notification-olduser-text" href="#">Upgrade now</a> to <b>PRO</b> &amp; get more than 50+ extra features, 220+ premium themes and over two million HD images.</p>';
 
       echo '<a href="#" class="button-primary open-ucp-upsell" data-pro-ad="notification-olduser-button">Upgrade to PRO now with a SPECIAL DISCOUNT</a>';
       echo '&nbsp;&nbsp;&nbsp;&nbsp;<a href="' . esc_url($dismiss_url) . '"><small>' . __('I\'m not interested (remove this notice)', 'under-construction-page') . '</small></a>';
@@ -1044,6 +1048,18 @@ class UCP {
   } // admin_footer_text
 
 
+  // fix for opening the plugin install modal
+  static function admin_footer() {
+    if (empty($_GET['fix-install-button']) || empty($_GET['tab']) || $_GET['tab'] != 'plugin-information') {
+      return;
+    }
+
+    echo '<script>';
+    echo "jQuery('#plugin_install_from_iframe').on('click', function() { window.location.href = jQuery(this).attr('href'); return false;});";
+    echo '</script>';
+  } // admin_footer
+
+
   // test if we're on plugin's page
   static function is_plugin_page() {
     $current_screen = get_current_screen();
@@ -1085,7 +1101,6 @@ class UCP {
                       'content' => __('Thank you for being patient. We are doing some work on the site and will be back shortly.', 'under-construction-page'),
                       'social_facebook' => '',
                       'social_twitter' => '',
-                      'social_google' => '',
                       'social_linkedin' => '',
                       'social_youtube' => '',
                       'social_vimeo' => '',
@@ -1106,47 +1121,7 @@ class UCP {
                       'whitelisted_users' => array()
                       );
 
-    $defaults_000 = array('status' => '1',
-                      'license_key' => '',
-                      'license_active' => false,
-                      'license_expires' => '1900-01-01',
-                      'license_type' => '',
-                      'end_date' => '',
-                      'ga_tracking_id' => '',
-                      'theme' => '000webhost',
-                      'custom_css' => '',
-                      'title' => '[site-title] is under construction',
-                      'description' => '[site-tagline]',
-                      'heading1' => __('We\'re building our brand new site', 'under-construction-page'),
-                      'content' => __('Powered by <a href="https://www.000webhost.com/" target="_blank">000webhost</a>.', 'under-construction-page'),
-                      'social_facebook' => '',
-                      'social_twitter' => '',
-                      'social_google' => '',
-                      'social_linkedin' => '',
-                      'social_youtube' => '',
-                      'social_vimeo' => '',
-                      'social_pinterest' => '',
-                      'social_dribbble' => '',
-                      'social_behance' => '',
-                      'social_instagram' => '',
-                      'social_tumblr' => '',
-                      'social_vk' => '',
-                      'social_email' => '',
-                      'social_phone' => '',
-                      'social_skype' => '',
-                      'social_telegram' => '',
-                      'social_whatsapp' => '',
-                      'login_button' => '1',
-                      'linkback' => '0',
-                      'whitelisted_roles' => array('administrator'),
-                      'whitelisted_users' => array()
-                      );
-
-    if (stripos($_SERVER['HTTP_HOST'], '000webhost') !== false) {
-      return $defaults_000;
-    } else {
-      return $defaults;
-    }
+    return $defaults;
   } // default_options
 
 
@@ -1158,14 +1133,15 @@ class UCP {
       switch ($key) {
         case 'title':
         case 'description':
+          $options[$key] = trim(strip_tags($value));
+        break;
         case 'heading1':
         case 'content':
-          $options[$key] = trim($value);
+          $options[$key] = trim(wp_kses($value, wp_kses_allowed_html('post')));
         break;
         case 'custom_css':
         case 'social_facebook':
         case 'social_twitter':
-        case 'social_google':
         case 'social_linkedin':
         case 'social_youtube':
         case 'social_vimeo':
@@ -1231,7 +1207,6 @@ class UCP {
           $options['license_active'] = $tmp['license_active'];
           if ($tmp['license_active']) {
             add_settings_error(UCP_OPTIONS_KEY, 'license_key', __('License key saved and activated!', 'under-construction-page'), 'updated');
-            set_site_transient('update_plugins', null);
           } else {
             add_settings_error(UCP_OPTIONS_KEY, 'license_key', 'License not active. ' . $tmp['error'], 'error');
           }
@@ -1251,8 +1226,8 @@ class UCP {
 
     return array_merge($old_options, $options);
   } // sanitize_settings
-  
-  
+
+
   static function empty_cache() {
     wp_cache_flush();
     if (function_exists('w3tc_flush_all')) {
@@ -1286,6 +1261,7 @@ class UCP {
     if (function_exists('rocket_clean_domain')) {
       rocket_clean_domain();
     }
+    do_action('cache_enabler_clear_complete_cache');
   } // empty_cache
 
 
@@ -1360,11 +1336,12 @@ class UCP {
       $page = '/';
     }
 
-    if (stripos($_SERVER['HTTP_HOST'], '000webhost') !== false) {
-      $parts = array_merge(array('utm_source' => 'ucp-free-000webhost', 'utm_medium' => 'plugin', 'utm_content' => $placement, 'utm_campaign' => 'ucp-free-v' . self::$version), $params);
-    } else {
-      $parts = array_merge(array('utm_source' => 'ucp-free', 'utm_medium' => 'plugin', 'utm_content' => $placement, 'utm_campaign' => 'ucp-free-v' . self::$version), $params);
+    if ($placement) {
+      $placement = trim($placement, '-');
+      $placement = '-' . $placement;
     }
+
+    $parts = array_merge(array('ref' => 'ucp-free' . $placement), $params);
 
     if (!empty($anchor)) {
       $anchor = '#' . trim($anchor, '#');
@@ -1501,6 +1478,20 @@ class UCP {
       echo '</tr>';
     } // weglot not active
 
+    echo '<tr>';
+    echo '<th><label for="smush_support">Image Compression</label></th>';
+    echo '<td>';
+    if (defined('WP_SMUSH_VERSION')) {
+      echo 'Configure <a target="_blank" href="' . admin_url('admin.php?page=smush') . '">image compression options</a>.';
+    } else {
+      echo '<div class="toggle-wrapper">
+      <input type="checkbox" id="smush_support" type="checkbox" value="1" class="skip-save open-smush-install">
+      <label for="smush_support" class="toggle"><span class="toggle_handler"></span></label></div>';
+      echo '<p class="description">The easiest way to speed up any site is to <b>compress images</b>. On an average page you can easily save a few megabytes. Doing it manually in Photoshop is a pain! That\'s why there are free plugins like <a href="' . admin_url('plugin-install.php?fix-install-button=1&tab=plugin-information&plugin=wp-smushit&TB_iframe=true&width=600&height=550') . '" class="thickbox open-plugin-details-modal smush-thickbox" id="smush-install-link">Smush</a> that specialize in compressing images. <a href="' . admin_url('plugin-install.php?fix-install-button=1&tab=plugin-information&plugin=wp-smushit&TB_iframe=true&width=600&height=550') . '" class="thickbox open-plugin-details-modal smush-thickbox">Install the free Smush plugin</a>. It has no limit on the amount of images you can compress, seamlessly integrates with WordPress, and is compatible with all plugins &amp; themes. And best of all - <b>it\'s used by over a million users just like you</b>.</p>';
+    }
+    echo '</td>';
+    echo '</tr>';
+
     echo '<tr valign="top">
     <th scope="row"><label for="title">' . __('Title', 'under-construction-page') . '</label></th>
     <td><input type="text" id="title" class="regular-text" name="' . UCP_OPTIONS_KEY . '[title]" value="' . esc_attr($options['title']) . '" />';
@@ -1598,12 +1589,6 @@ class UCP {
     <th scope="row"><label for="social_twitter">' . __('Twitter Profile', 'under-construction-page') . '</label></th>
     <td><input id="social_twitter" type="url" class="regular-text code" name="' . UCP_OPTIONS_KEY . '[social_twitter]" value="' . esc_attr($options['social_twitter']) . '" placeholder="' . __('Twitter profile URL', 'under-construction-page') . '">';
     echo '<p class="description">' . __('Complete URL, with https prefix, to Twitter profile page.', 'under-construction-page') . '</p>';
-    echo '</td></tr>';
-
-    echo '<tr valign="top">
-    <th scope="row"><label for="social_google">' . __('Google Page', 'under-construction-page') . '</label></th>
-    <td><input id="social_google" type="url" class="regular-text code" name="' . UCP_OPTIONS_KEY . '[social_google]" value="' . esc_attr($options['social_google']) . '" placeholder="' . __('Google+ page URL', 'under-construction-page') . '">';
-    echo '<p class="description">' . __('Complete URL, with https prefix, to Google+ page.', 'under-construction-page') . '</p>';
     echo '</td></tr>';
 
     echo '<tr valign="top">
@@ -2034,6 +2019,7 @@ class UCP {
 
     echo '<p class="submit">';
     echo get_submit_button(__('Save &amp; Validate License Key', 'under-construction-page'), 'large secondary', 'license-submit', false);
+    echo '<br><br><small><i>By attempting to activate a license you agree to share the following data with <a href="https://www.webfactoryltd.com/" target="_blank">WebFactory Ltd</a>: license key, site URL, site title, site WP version, and UnderConstructionPage (free) version.</i></small>';
     echo '</p>';
   } // tab_pro
 
@@ -2130,7 +2116,7 @@ class UCP {
     echo '</div>';
 
     echo '<div class="ucp-pro-feature">';
-    echo '<span>1 Million+ HD Searchable Images</span>';
+    echo '<span>2.5+ Million HD Searchable Images</span>';
     echo '<p>There\'s nothing worse than googling for hours just to find that the perfect image you need is either copyrighted or too small. Enjoy a vast library of 4K+ sized images - categorized &amp; copyright free!</p>';
     echo '</div>';
 
@@ -2205,12 +2191,12 @@ class UCP {
       <td>Drag&amp;Drop Builder</td>
     </tr>
     <tr>
-      <td>130+ PRO Templates</td>
-      <td>130+ PRO Templates</td>
-      <td>130+ PRO Templates</td>
+      <td>120+ PRO Templates</td>
+      <td>120+ PRO Templates</td>
+      <td>120+ PRO Templates</td>
     </tr>
     <tr>
-      <td>90+ Agency Templates</td>
+      <td>110+ Agency Templates</td>
       <td><span class="dashicons dashicons-no"></td>
       <td><span class="dashicons dashicons-no"></td>
     </tr>
@@ -2359,7 +2345,7 @@ class UCP {
 
     if (is_plugin_active('weglot/weglot.php')) {
       $weglot_info = get_plugin_data(ABSPATH . 'wp-content/plugins/weglot/weglot.php');
-      if( version_compare($weglot_info['Version'], '2.5', '<')) {
+      if (version_compare($weglot_info['Version'], '2.5', '<')) {
         return false;
       } else {
         return true;
@@ -2383,68 +2369,6 @@ class UCP {
       return false;
     }
   } // is_weglot_setup
-
-
-  // helper function for adding plugins to fav list
-  static function featured_plugins_tab($args) {
-    add_filter('plugins_api_result', array(__CLASS__, 'plugins_api_result'), 10, 3);
-
-    return $args;
-  } // featured_plugins_tab
-
-
-  // add single plugin to list of favs
-  static function add_plugin_favs($plugin_slug, $res) {
-    if (!isset($res->plugins) || !is_array($res->plugins)) {
-      return $res;
-    }
-
-    if (!empty($res->plugins) && is_array($res->plugins)) {
-      foreach ($res->plugins as $plugin) {
-        if (is_object($plugin) && !empty($plugin->slug) && $plugin->slug == $plugin_slug) {
-          return $res;
-        }
-      } // foreach
-    }
-
-    $plugin_info = get_transient('wf-plugin-info-' . $plugin_slug);
-
-    if (!$plugin_info) {
-      $plugin_info = plugins_api('plugin_information', array(
-        'slug'   => $plugin_slug,
-        'is_ssl' => is_ssl(),
-        'fields' => array(
-          'banners'           => true,
-          'reviews'           => true,
-          'downloaded'        => true,
-          'active_installs'   => true,
-          'icons'             => true,
-          'short_description' => true,
-        )
-      ));
-      if (!is_wp_error($plugin_info)) {
-        set_transient('wf-plugin-info-' . $plugin_slug, $plugin_info, DAY_IN_SECONDS * 7);
-      }
-    }
-
-    if ($plugin_info && !is_wp_error($plugin_info)) {
-      array_unshift($res->plugins, $plugin_info);
-    }
-
-    return $res;
-  } // add_plugin_favs
-
-
-  // add our plugins to recommended list
-  static function plugins_api_result($res, $action, $args) {
-    remove_filter('plugins_api_result', array(__CLASS__, 'plugins_api_result'), 10, 3);
-    
-    $res = self::add_plugin_favs('eps-301-redirects', $res);
-    $res = self::add_plugin_favs('simple-author-box', $res);
-    $res = self::add_plugin_favs('security-ninja', $res);
-    
-    return $res;
-  } // plugins_api_result
 
 
   // reset pointers on activation
